@@ -11,6 +11,7 @@ type Summary = {
   remainingKcal: number;
   planId: string;
   expiresAt: string | null;
+  menuOrder: { id: string; status: string; revision_count: number } | null;
   healthScore: { status: "incomplete" | "ready"; score: number | null };
   challenge: {
     day: number;
@@ -21,10 +22,11 @@ type Summary = {
   };
 };
 
-type SellablePlan = "plan_399" | "plan_799" | "plan_3590" | "plan_7190";
+type SellablePlan = "plan_299" | "plan_399" | "plan_799" | "plan_3590" | "plan_7190";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "免費",
+  plan_299: "7 天個人化減脂菜單",
   plan_399: "卡卡 Plus（月繳）",
   plan_799: "卡卡 Pro 教練（月繳）",
   plan_3590: "卡卡 Plus（年繳）",
@@ -153,7 +155,25 @@ export default function LiffPage() {
           </p>
 
           <p style={{ marginTop: "1rem", marginBottom: 0, fontWeight: 600 }}>
-            月繳（30 天）
+            一次性个人化菜单
+          </p>
+          <button
+            type="button"
+            disabled={paying !== null}
+            onClick={() => void startPay("plan_299")}
+            style={{ ...btnStyle, background: "#7a5b40" }}
+          >
+            {paying === "plan_299" ? "建立订单中…" : "7 天个人化减脂菜单 NT$299"}
+          </button>
+          <p style={{ fontSize: "0.85rem", color: "#666" }}>
+            付款后填写饮食问卷，系统会依你的热量、蛋白质目标和生活方式生成菜单，并可免费重新生成一次。
+          </p>
+          {summary.menuOrder ? (
+            <a href={`/menu-plan?lineUserId=${encodeURIComponent(lineUserId ?? "")}`} style={{ display: "block", marginTop: 8 }}>打开我的 7 天菜单</a>
+          ) : null}
+
+          <p style={{ marginTop: "1rem", marginBottom: 0, fontWeight: 600 }}>
+            月缴（30 天）
           </p>
           <button
             type="button"

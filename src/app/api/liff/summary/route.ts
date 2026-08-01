@@ -38,6 +38,14 @@ export async function GET(req: Request) {
     .eq("status", "active");
 
   const currentPlan = resolveCurrentPlan(subs ?? []);
+  const { data: menuOrder } = await db
+    .from("menu_orders")
+    .select("id, status, revision_count")
+    .eq("member_id", member.id)
+    .not("status", "in", "(refunded)")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   const healthScore = calculateHealthScore({
     totalKcal: todayKcal,
     proteinG: todayProtein,
@@ -60,6 +68,7 @@ export async function GET(req: Request) {
     remainingKcal: Math.max(0, calorieTarget - todayKcal),
     planId: currentPlan.planId,
     expiresAt: currentPlan.expiresAt,
+    menuOrder: menuOrder ?? null,
     healthScore,
     challenge,
   });

@@ -96,7 +96,7 @@ export default function HomePage() {
             <div className={styles.visualFrame}>
               <Image
                 className={styles.challengeImage}
-                src="/images/hero-kaka-original.webp"
+                src="/images/hero-kaka-original.png"
                 alt="卡卡健身教練與 30 天減脂挑戰功能總覽"
                 width={1086}
                 height={1448}

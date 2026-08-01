@@ -1,4 +1,4 @@
-import { validateGrantPlanId, type GrantablePlanId } from "./grant-plan";
+import { ADMIN_PLAN_OPTIONS, type AdminPlanId } from "./plan-options";
 
 type PauseOperation = {
   memberId: string;
@@ -22,7 +22,7 @@ type ExtendOperation = {
 type RecordPaymentOperation = {
   memberId: string;
   action: "record_payment";
-  planId: GrantablePlanId;
+  planId: AdminPlanId;
   amountTwd: number;
   note: string | null;
 };
@@ -53,7 +53,9 @@ export function parseMemberOperation(value: unknown): MemberOperation | null {
       : null;
   }
   if (input.action === "record_payment") {
-    const planId = validateGrantPlanId(input.planId);
+    const planId = typeof input.planId === "string" && input.planId in ADMIN_PLAN_OPTIONS
+      ? (input.planId as AdminPlanId)
+      : null;
     const amountTwd = input.amountTwd;
     return planId &&
       Number.isInteger(amountTwd) &&

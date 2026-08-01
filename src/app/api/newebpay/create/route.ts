@@ -6,6 +6,7 @@ import { createPaymentOrder } from "@/repositories/orders";
 export const runtime = "nodejs";
 
 const SELLABLE_PLANS = new Set([
+  "plan_299",
   "plan_399",
   "plan_799",
   "plan_3590",
@@ -13,7 +14,7 @@ const SELLABLE_PLANS = new Set([
 ]);
 
 /**
- * Body: { lineUserId: string, planId?: "plan_399" | "plan_799" | "plan_3590" | "plan_7190" }
+ * Body: { lineUserId: string, planId?: "plan_299" | "plan_399" | "plan_799" | "plan_3590" | "plan_7190" }
  * Amount always from DB plans.price_twd
  */
 export async function POST(req: Request) {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "unsupported planId; sellable: plan_399, plan_799, plan_3590, plan_7190",
+            "unsupported planId; sellable: plan_299, plan_399, plan_799, plan_3590, plan_7190",
         },
         { status: 400 },
       );

@@ -176,6 +176,31 @@ function resolveChoice(
   );
 }
 
+
+export function onboardingAcknowledgement(step: string, value: string): string {
+  switch (step) {
+    case "sex":
+      return "收到，我會用這項資料協助估算需求。接下來想再了解你的年齡。";
+    case "age":
+      return "謝謝你告訴我。每個年齡都可以找到適合自己的節奏，我們慢慢來。";
+    case "height":
+      return "收到身高資料了，接下來會搭配體重一起估算，不會只看單一數字。";
+    case "weight":
+      return "收到了，體重只是我們用來估算需求的資料，不是評價你的分數。";
+    case "target_weight":
+      return "目標先記下來了。之後會依實際感受與趨勢調整，不需要一次做到完美。";
+    case "activity":
+      return value === "sedentary"
+        ? "沒關係，我們會從你目前做得到的程度開始，不需要突然逼自己每天運動。"
+        : "了解，我會把平日活動量一起算進每日需求，讓目標更貼近生活。";
+    case "freq":
+      return "收到，每週運動次數會影響熱量與恢復安排，我們會以能長久維持為主。";
+    case "goal":
+      return "了解你的方向了。我們不走極端路線，會用日常飲食與適量運動慢慢靠近目標。";
+    default:
+      return "收到，我們一步一步來。";
+  }
+}
 /** Accept postback value (`male`) or button label / typed phrase (`男`). */
 function resolveSex(raw: string): string | undefined {
   return resolveChoice(SEX_MAP, raw);
@@ -236,7 +261,7 @@ export async function handleOnboarding(
       await patchProfile(member.id, { age });
       const nxt = nextStep(step);
       await setOnboardingStep(member.id, nxt);
-      return withPrompt(nxt!, note);
+      return withPrompt(nxt!, `\n\n${onboardingAcknowledgement(step, raw)}${note}`);
     } else if (step === "height") {
       const height = parseLooseNumber(raw);
       if (height === null || !(height >= 100 && height <= 250)) {
@@ -304,7 +329,7 @@ export async function handleOnboarding(
       stillOnboarding: false,
     };
   }
-  return withPrompt(nxt);
+  return withPrompt(nxt, `\n\n${onboardingAcknowledgement(step, raw)}`);
 }
 
 /** Parse `onboarding:<step>:<value>` postback data. */

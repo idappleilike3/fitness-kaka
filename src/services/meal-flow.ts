@@ -3,7 +3,7 @@ import {
   isAudioTooLong,
   MAX_AUDIO_SECONDS,
 } from "@/lib/audio/duration";
-import { replyMessage, startLoadingAnimation } from "@/lib/line/client";
+import { replyMessage } from "@/lib/line/client";
 import { isPendingMealCorrection } from "@/lib/line/intent";
 import {
   audioTooLongMessage,
@@ -13,10 +13,11 @@ import {
   voiceUpgradeCtaMessage,
 } from "@/lib/line/messages";
 import { analyzeMealFromImage, analyzeMealFromText } from "@/lib/openai/meal";
+import { understandImage, nonFoodReply } from "@/lib/openai/image-understanding";
+import { classifyAiFailure, aiFailureUserMessage } from "@/lib/openai/error-policy";
 import { transcribeAudio } from "@/lib/openai/whisper";
 import { logApiUsage } from "@/repositories/logs";
 import { recordConfirmedMealChallenge } from "@/repositories/challenges";
-import { challengeMilestoneMessage, getChallengeMilestone } from "@/services/challenge";
 import {
   confirmPending,
   createPending,
@@ -35,34 +36,6 @@ function formatMealText(analysis: MealAnalysisJson): string[] {
   return analysis.items.map(
     (i) => `${i.name}：${i.portion_text}`,
   );
-}
-
-export function calculateProjectedRemaining(input: {
-  calorieTarget: number;
-  proteinTarget: number;
-  confirmedKcal: number;
-  confirmedProteinG: number;
-  currentMealKcal: number;
-  currentMealProteinG: number;
-}) {
-  const projectedKcal = Math.max(
-    0,
-    Math.round(input.confirmedKcal + input.currentMealKcal),
-  );
-  const projectedProteinG = Math.max(
-    0,
-    Math.round(input.confirmedProteinG + input.currentMealProteinG),
-  );
-
-  return {
-    projectedKcal,
-    projectedProteinG,
-    remainingKcal: Math.max(0, Math.round(input.calorieTarget - projectedKcal)),
-    proteinLeft: Math.max(
-      0,
-      Math.round(input.proteinTarget - projectedProteinG),
-    ),
-  };
 }
 
 export function buildMealCorrectionPrompt(
@@ -92,25 +65,21 @@ async function replyMealPreview(
   const proteinTarget = profile?.protein_g_target ?? 0;
   const todayKcal = Number(today.total_kcal) || 0;
   const todayProtein = Number(today.protein_g) || 0;
-  const projected = calculateProjectedRemaining({
-    calorieTarget: target,
-    proteinTarget,
-    confirmedKcal: todayKcal,
-    confirmedProteinG: todayProtein,
-    currentMealKcal: analysis.total_kcal,
-    currentMealProteinG: analysis.protein_g,
-  });
+  const mealKcal = Math.round(analysis.total_kcal);
+  const mealProtein = Math.round(analysis.protein_g);
+  const projectedKcal = todayKcal + mealKcal;
+  const projectedProtein = Math.round(todayProtein) + mealProtein;
   const text = mealResultMessage({
     lines: formatMealText(analysis),
-    totalKcal: Math.round(analysis.total_kcal),
-    proteinG: Math.round(analysis.protein_g),
+    totalKcal: mealKcal,
+    proteinG: mealProtein,
     carbG: Math.round(analysis.carb_g),
     fatG: Math.round(analysis.fat_g),
     todayKcal,
-    projectedKcal: projected.projectedKcal,
-    projectedProteinG: projected.projectedProteinG,
-    remainingKcal: projected.remainingKcal,
-    proteinLeft: projected.proteinLeft,
+    projectedKcal,
+    projectedProteinG: projectedProtein,
+    remainingKcal: Math.max(0, target - projectedKcal),
+    proteinLeft: Math.max(0, proteinTarget - projectedProtein),
   });
 
   await replyMessage(replyToken, [
@@ -194,7 +163,6 @@ export async function handleImageMeal(
   memberId: string,
   buffer: Buffer,
   mime: string,
-  lineUserId?: string,
 ): Promise<void> {
   const maxBytes = (() => {
     const n = Number(process.env.MAX_IMAGE_BYTES);
@@ -204,6 +172,26 @@ export async function handleImageMeal(
     await replyMessage(replyToken, [
       { type: "text", text: "圖片太大了，請壓縮後再傳（建議 5MB 以內）" },
     ]);
+    return;
+  }
+
+  let understanding: Awaited<ReturnType<typeof understandImage>>;
+  try {
+    understanding = await understandImage(buffer, mime);
+  } catch (err) {
+    const kind = classifyAiFailure(err);
+    await replyMessage(replyToken, [{ type: "text", text: aiFailureUserMessage(kind) }]);
+    return;
+  }
+  await logApiUsage({
+    memberId,
+    model: understanding.model,
+    purpose: "image_classification",
+    promptTokens: understanding.usage.prompt,
+    completionTokens: understanding.usage.completion,
+  });
+  if (!understanding.result.contains_food || !["food", "packaged_food"].includes(understanding.result.kind)) {
+    await replyMessage(replyToken, [{ type: "text", text: nonFoodReply(understanding.result) }]);
     return;
   }
 
@@ -218,12 +206,6 @@ export async function handleImageMeal(
     return;
   }
 
-  if (lineUserId) {
-    await startLoadingAnimation(lineUserId, 20).catch((err) => {
-      console.warn("[meal-flow] unable to start LINE loading animation", err);
-    });
-  }
-
   const imageHash = crypto.createHash("sha256").update(buffer).digest("hex");
   let result: Awaited<ReturnType<typeof analyzeMealFromImage>>;
   try {
@@ -232,7 +214,9 @@ export async function handleImageMeal(
     await refundConsumed(memberId, "image").catch((refundErr) => {
       console.error("[meal-flow] image quota refund failed", refundErr);
     });
-    throw err;
+    const kind = classifyAiFailure(err);
+    await replyMessage(replyToken, [{ type: "text", text: aiFailureUserMessage(kind) }]);
+    return;
   }
   const { analysis, usage, model } = result;
   await logApiUsage({
@@ -331,14 +315,10 @@ export async function handleMealPostback(
     await replyMessage(replyToken, [
       {
         type: "text",
-        text: (() => {
-          if (!challenge?.missionCompleted) return "已幫你記下來了，繼續保持！";
-          const milestone = getChallengeMilestone(challenge.streakDays);
-          if (milestone) {
-            return `已幫你記下來了，Day ${challenge.streakDays} 連續紀錄完成！\n\n${challengeMilestoneMessage(milestone)}`;
-          }
-          return `已幫你記下來了，Day ${challenge.streakDays} 連續紀錄完成！`;
-        })(),
+        text:
+          challenge?.missionCompleted
+            ? `已幫你記下來了，Day ${challenge.streakDays} 連續紀錄完成！`
+            : "已幫你記下來了，繼續保持！",
       },
     ]);
     return;

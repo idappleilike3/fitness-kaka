@@ -39,6 +39,7 @@ import {
   featureUnavailableUserMessage,
 } from "@/lib/service-unavailable";
 import { ensureEventOnce, logSystem } from "@/repositories/logs";
+import { logConversationEvent } from "@/repositories/sales-crm";
 import {
   setOnboardingStep,
   upsertMemberByLineUserId,
@@ -235,6 +236,7 @@ async function replyMemberText(
     return;
   }
   rememberBotReply(memberId, text, kind);
+  await logConversationEvent({ memberId, direction: "assistant", content: text, eventType: kind }).catch(() => undefined);
   await replyText(replyToken, text);
 }
 
@@ -539,10 +541,11 @@ export async function routeEvent(event: LineEvent): Promise<void> {
           return;
         }
         const buf = await downloadContent(msg.id);
-        await handleImageMeal(replyToken, member.id, buf, "image/jpeg", userId);
+        await handleImageMeal(replyToken, member.id, buf, "image/jpeg");
         return;
       }
       if (msg.type === "text" && msg.text) {
+        await logConversationEvent({ memberId: member.id, direction: "member", content: msg.text, eventType: "text" }).catch(() => undefined);
         if (member.onboarding_step) {
           const text = msg.text.trim();
           if (isEmojiOnlyMessage(text)) {

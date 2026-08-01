@@ -3,6 +3,19 @@ import { getTaipeiDate } from "@/lib/quota/daily";
 import { countApiUsageSince, logApiUsage } from "@/repositories/logs";
 import { getTodaySummary } from "@/repositories/meals";
 import { getProfile } from "@/repositories/profiles";
+import {
+  detectSalesSignals,
+  recommendPlan,
+  salesDiscoveryQuestion,
+  planRecommendationCopy,
+} from "@/services/sales-discovery";
+import {
+  canRecommendPlan,
+  getMemberSalesProfile,
+  isSalesPaused,
+  markPlanRecommended,
+  mergeSalesSignals,
+} from "@/repositories/sales-profiles";
 
 /** Soft daily cap — coach chat does not consume meal analysis quota. */
 export const COACH_CHAT_DAILY_LIMIT = 40;
@@ -71,5 +84,29 @@ export async function handleCoachChat(
     completionTokens: usage.completion,
   });
 
-  return { ok: true, reply };
+  const signals = detectSalesSignals(text);
+  const before = await getMemberSalesProfile(memberId);
+  const salesProfile = await mergeSalesSignals(memberId, before, signals);
+  const discoveryQuestion = salesDiscoveryQuestion(text);
+  const plan = recommendPlan({
+    ...signals,
+    menuNeed: salesProfile.menu_need_score,
+    accountabilityNeed: salesProfile.accountability_need_score,
+    challengeNeed: salesProfile.challenge_need_score,
+    purchaseIntent: salesProfile.purchase_intent_score,
+  });
+  let adaptiveReply = reply.trim();
+
+  // 先诊断，再给价值，再于明确购买意图或累计需求足够时自然推荐。
+  // 同一方案七天内不重复推荐；用户说先不用后暂停三天。
+  if (signals.pauseSelling || isSalesPaused(salesProfile)) {
+    adaptiveReply += "\n\n没问题，我们先专心把今天做好；你想了解方案时再告诉我就好。\n\n不用急着决定，找到你能长期做到的方法最重要。";
+  } else if (plan && signals.purchaseIntent >= 3 && canRecommendPlan(salesProfile, plan)) {
+    adaptiveReply += `\n\n${planRecommendationCopy(plan)}`;
+    await markPlanRecommended(memberId, plan);
+  } else if (discoveryQuestion) {
+    adaptiveReply += `\n\n${discoveryQuestion}`;
+  }
+
+  return { ok: true, reply: adaptiveReply };
 }

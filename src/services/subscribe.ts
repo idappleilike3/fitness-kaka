@@ -90,12 +90,29 @@ export async function applyNotifyPayment(params: {
     .eq("id", order.plan_id)
     .single();
 
-  const expires = await extendSubscriptionAfterPayment({
-    memberId: order.member_id,
-    planId: order.plan_id,
-    orderId: order.id,
-    durationDays: plan?.duration_days ?? 30,
-  });
+  let expires: Date | null = null;
+  if (order.plan_id === "plan_299") {
+    const { data: existingMenu } = await db
+      .from("menu_orders")
+      .select("id")
+      .eq("payment_order_id", order.id)
+      .maybeSingle();
+    if (!existingMenu) {
+      const { error: menuError } = await db.from("menu_orders").insert({
+        member_id: order.member_id,
+        payment_order_id: order.id,
+        status: "awaiting_profile",
+      });
+      if (menuError) throw new Error(`建立 299 菜单订单失败: ${menuError.message}`);
+    }
+  } else {
+    expires = await extendSubscriptionAfterPayment({
+      memberId: order.member_id,
+      planId: order.plan_id,
+      orderId: order.id,
+      durationDays: plan?.duration_days ?? 30,
+    });
+  }
 
   const { data: member } = await db
     .from("members")
@@ -104,14 +121,21 @@ export async function applyNotifyPayment(params: {
     .single();
 
   if (member?.line_user_id) {
-    const dateStr = expires.toLocaleDateString("zh-TW", {
-      timeZone: "Asia/Taipei",
-    });
     try {
-      await pushText(
-        member.line_user_id,
-        `付款成功！會員效期至 ${dateStr}，開始好好紀錄飲食吧`,
-      );
+      if (order.plan_id === "plan_299") {
+        const baseUrl = process.env.PUBLIC_BASE_URL?.replace(/\/$/, "") ?? "";
+        const menuUrl = `${baseUrl}/menu-plan?lineUserId=${encodeURIComponent(member.line_user_id)}`;
+        await pushText(
+          member.line_user_id,
+          `付款成功 🌿 你的 7 天个人化菜单已经开放。先花一点时间填写饮食问卷，我会依你的热量、蛋白质和生活方式帮你安排。\n\n${menuUrl}\n\n不用追求每餐完美，我们会从你做得到的方式开始。❤️`,
+        );
+      } else if (expires) {
+        const dateStr = expires.toLocaleDateString("zh-TW", { timeZone: "Asia/Taipei" });
+        await pushText(
+          member.line_user_id,
+          `付款成功！会员效期至 ${dateStr}。不用一下做到完美，我们每天慢慢调整就好。❤️`,
+        );
+      }
     } catch {
       /* ignore push errors */
     }

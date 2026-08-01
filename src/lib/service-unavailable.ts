@@ -18,7 +18,8 @@ export const USER_MSG_NEWEBPAY =
   "付款服務還沒設定好喔 請稍後再試或聯絡客服";
 export const USER_MSG_ENV =
   "系統設定還沒完成喔 請稍後再試或聯絡客服";
-export const USER_MSG_BUSY = "系統有點忙碌 請稍後再試";
+export const USER_MSG_BUSY =
+  "我剛剛沒有成功完成這次處理，不是你的操作有問題。請稍後再試，或先用文字告訴我需要什麼。\n\n沒關係，我們換一個方式也可以繼續。";
 
 /** 僅管理員／客服可見 */
 export function adminHintMessage(code: string): string {

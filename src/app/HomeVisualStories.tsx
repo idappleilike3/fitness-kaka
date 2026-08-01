@@ -7,7 +7,7 @@ export function PainStory() {
     <section id="problem" className={styles.storySection} aria-labelledby="problem-title">
       <div className={styles.storySplit} data-reveal>
         <div className={styles.storyImage}>
-          <Image src="/images/story-real-life.webp" alt="忙碌外食時，用手機拍下餐點開始記錄" fill sizes="(max-width: 860px) 100vw, 52vw" />
+          <Image src="/images/story-real-life.png" alt="忙碌外食時，用手機拍下餐點開始記錄" fill sizes="(max-width: 860px) 100vw, 52vw" />
           <div className={styles.floatingChoice}>
             <small>今天午餐</small>
             <strong>不用查資料庫</strong>
@@ -39,7 +39,7 @@ export function ThreeStepJourney() {
         <p className={styles.sectionLead}>從一張餐點照片開始，卡卡把辨識結果變成你看得懂、能修改、也真的做得到的下一步。照片分析為營養估算，食材、份量與烹調方式由你確認後才計入。</p>
       </div>
       <div className={styles.journeyStage} data-reveal>
-        <Image src="/images/story-photo-analysis.webp" alt="使用手機拍攝健康餐點" fill sizes="100vw" />
+        <Image src="/images/story-photo-analysis.png" alt="使用手機拍攝健康餐點" fill sizes="100vw" />
         <div className={styles.journeyRail}>
           <article><span>01</span><div><b>拍照、文字或語音</b><p>外食直接拍，沒照片就打字；付費方案忙碌時也能用語音說。</p></div></article>
           <article><span>02</span><div><b>先看分析，再確認</b><p>卡卡整理餐點、份量、熱量與蛋白質；辨識不準可修改，不會直接算進去。</p></div></article>
@@ -192,7 +192,7 @@ export function RoadmapStory() {
   return (
     <section id="challenge" className={`${styles.storySection} ${styles.roadmapStory}`} aria-labelledby="milestone-title">
       <div className={styles.roadmapImage} data-reveal>
-        <Image src="/images/story-roadmap.webp" alt="從開始記錄、調整飲食到建立穩定運動習慣的三十天歷程" fill sizes="100vw" />
+        <Image src="/images/story-roadmap.png" alt="從開始記錄、調整飲食到建立穩定運動習慣的三十天歷程" fill sizes="100vw" />
         <div className={styles.roadmapIntro}>
           <p className={styles.sectionEyebrow}>30 DAY ROADMAP</p>
           <h2 id="milestone-title" className={styles.displayTitle}>有方向的挑戰<br />比硬撐更容易持續</h2>
@@ -240,7 +240,7 @@ export function MemberDashboardPreview() {
 export function CoachClosing() {
   return (
     <section className={styles.coachClosing} aria-labelledby="warmth-title">
-      <Image src="/images/story-coach-support.webp" alt="卡卡教練在餐桌旁用手機提供飲食建議" fill sizes="100vw" />
+      <Image src="/images/story-coach-support.png" alt="卡卡教練在餐桌旁用手機提供飲食建議" fill sizes="100vw" />
       <div className={styles.coachTabletUi} data-reveal aria-label="平板上的今日飲食建議示範">
         <small>今日飲食回顧</small>
         <div><strong>1,420</strong><span>/ 1,680 kcal</span></div>

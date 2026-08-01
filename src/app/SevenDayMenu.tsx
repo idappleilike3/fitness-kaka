@@ -5,43 +5,43 @@ import { useRef, useState } from "react";
 import styles from "./page.module.css";
 
 const DAYS = [
-  { day: "Day 1", theme: "穩定開始", image: "/images/menu-day-1.webp", kcal: "1,480", protein: "105g", meals: [
+  { day: "Day 1", theme: "穩定開始", image: "/images/menu-day-1.png", kcal: "1,480", protein: "105g", meals: [
     { label: "早餐", name: "優格莓果燕麥杯", kcal: 330 },
     { label: "午餐", name: "舒肥雞胸糙米餐盒", kcal: 520 },
     { label: "晚餐", name: "鮭魚豆腐蔬菜鍋", kcal: 470 },
     { label: "點心", name: "無糖豆漿＋茶葉蛋", kcal: 160 },
   ] },
-  { day: "Day 2", theme: "外食也能瘦", image: "/images/menu-day-2.webp", kcal: "1,520", protein: "110g", meals: [
+  { day: "Day 2", theme: "外食也能瘦", image: "/images/menu-day-2.png", kcal: "1,520", protein: "110g", meals: [
     { label: "早餐", name: "鮪魚蛋全麥吐司", kcal: 360 },
     { label: "午餐", name: "自助餐半飯雙青菜", kcal: 500 },
     { label: "晚餐", name: "牛肉蔬菜湯＋地瓜", kcal: 470 },
     { label: "點心", name: "芭樂＋原味堅果", kcal: 190 },
   ] },
-  { day: "Day 3", theme: "高蛋白日", image: "/images/menu-day-3.webp", kcal: "1,500", protein: "118g", meals: [
+  { day: "Day 3", theme: "高蛋白日", image: "/images/menu-day-3.png", kcal: "1,500", protein: "118g", meals: [
     { label: "早餐", name: "雞蛋起司全麥貝果", kcal: 390 },
     { label: "午餐", name: "香料雞腿藜麥沙拉", kcal: 510 },
     { label: "晚餐", name: "蒜香蝦仁蒸蛋餐", kcal: 440 },
     { label: "點心", name: "希臘優格", kcal: 160 },
   ] },
-  { day: "Day 4", theme: "纖維補給", image: "/images/menu-day-4.webp", kcal: "1,460", protein: "102g", meals: [
+  { day: "Day 4", theme: "纖維補給", image: "/images/menu-day-4.png", kcal: "1,460", protein: "102g", meals: [
     { label: "早餐", name: "香蕉燕麥蛋餅", kcal: 340 },
     { label: "午餐", name: "鯖魚五穀蔬菜餐", kcal: 530 },
     { label: "晚餐", name: "菇菇雞肉豆腐煲", kcal: 420 },
     { label: "點心", name: "毛豆＋小番茄", kcal: 170 },
   ] },
-  { day: "Day 5", theme: "解饞不爆卡", image: "/images/menu-day-5.webp", kcal: "1,530", protein: "108g", meals: [
+  { day: "Day 5", theme: "解饞不爆卡", image: "/images/menu-day-5.png", kcal: "1,530", protein: "108g", meals: [
     { label: "早餐", name: "薯泥雞肉生菜捲", kcal: 350 },
     { label: "午餐", name: "韓式牛肉拌飯減飯", kcal: 520 },
     { label: "晚餐", name: "番茄海鮮義大利麵", kcal: 500 },
     { label: "點心", name: "可可高蛋白飲", kcal: 160 },
   ] },
-  { day: "Day 6", theme: "週末彈性吃", image: "/images/menu-day-6.webp", kcal: "1,560", protein: "100g", meals: [
+  { day: "Day 6", theme: "週末彈性吃", image: "/images/menu-day-6.png", kcal: "1,560", protein: "100g", meals: [
     { label: "早餐", name: "酪梨蛋開放吐司", kcal: 390 },
     { label: "午餐", name: "日式雞肉蕎麥麵", kcal: 480 },
     { label: "晚餐", name: "火鍋肉片蔬菜盤", kcal: 510 },
     { label: "點心", name: "水果優格", kcal: 180 },
   ] },
-  { day: "Day 7", theme: "輕盈收尾", image: "/images/menu-day-7.webp", kcal: "1,450", protein: "106g", meals: [
+  { day: "Day 7", theme: "輕盈收尾", image: "/images/menu-day-7.png", kcal: "1,450", protein: "106g", meals: [
     { label: "早餐", name: "豆漿蛋白燕麥粥", kcal: 340 },
     { label: "午餐", name: "檸檬魚排地瓜餐", kcal: 490 },
     { label: "晚餐", name: "雞肉蔬菜味噌湯", kcal: 450 },

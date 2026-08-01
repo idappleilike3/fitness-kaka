@@ -31,6 +31,43 @@ export async function POST(req: NextRequest) {
   }
 
   if (operation.action === "record_payment") {
+    if (operation.planId === "plan_299") {
+      const now = new Date();
+      const orderNumber = `MENU-${Date.now()}-${member.id.slice(0, 8)}`;
+      const { data: order, error: orderError } = await db
+        .from("payment_orders")
+        .insert({
+          merchant_order_no: orderNumber,
+          member_id: member.id,
+          plan_id: operation.planId,
+          amount_twd: operation.amountTwd,
+          status: "paid",
+          paid_at: now.toISOString(),
+        })
+        .select("id")
+        .single();
+      if (orderError || !order) {
+        return NextResponse.json({ error: "菜單付款紀錄建立失敗" }, { status: 500 });
+      }
+      const { error: menuError } = await db.from("menu_orders").insert({
+        member_id: member.id,
+        payment_order_id: order.id,
+        status: "awaiting_profile",
+        questionnaire: {},
+      });
+      if (menuError) {
+        return NextResponse.json({ error: "7 天菜單訂單建立失敗" }, { status: 500 });
+      }
+      await db.from("admin_operation_logs").insert({
+        member_id: member.id,
+        operation: operation.action,
+        plan_id: operation.planId,
+        amount_twd: operation.amountTwd,
+        note: operation.note,
+        metadata: { orderId: order.id, product: "seven_day_menu" },
+      });
+      return NextResponse.json({ ok: true, orderId: order.id, kind: "menu_order" });
+    }
     const { data: plan, error: planError } = await db
       .from("plans")
       .select("duration_days, is_active")
