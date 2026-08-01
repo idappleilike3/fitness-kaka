@@ -539,7 +539,7 @@ export async function routeEvent(event: LineEvent): Promise<void> {
           return;
         }
         const buf = await downloadContent(msg.id);
-        await handleImageMeal(replyToken, member.id, buf, "image/jpeg", lineUserId);
+        await handleImageMeal(replyToken, member.id, buf, "image/jpeg", userId);
         return;
       }
       if (msg.type === "text" && msg.text) {
