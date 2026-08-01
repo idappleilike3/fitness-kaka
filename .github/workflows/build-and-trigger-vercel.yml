@@ -1,0 +1,45 @@
+name: Build and trigger Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-and-trigger-vercel.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production app
+        run: npm run build
+
+      - name: Commit verified deployment revision
+        run: |
+          mkdir -p src/lib
+          cat > src/lib/build-revision.ts <<EOF
+          // Generated after a verified production build.
+          export const BUILD_REVISION = "${GITHUB_SHA}-$(date -u +%Y%m%dT%H%M%SZ)";
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/build-revision.ts
+          git commit -m "chore(deploy): verified v10 production build" || exit 0
+          git push origin main
