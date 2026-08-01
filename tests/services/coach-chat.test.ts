@@ -6,6 +6,9 @@ const mocks = vi.hoisted(() => ({
   getTodaySummary: vi.fn(),
   logApiUsage: vi.fn(),
   replyCoachChat: vi.fn(),
+  getMemberSalesProfile: vi.fn(),
+  mergeSalesSignals: vi.fn(),
+  markPlanRecommended: vi.fn(),
 }));
 
 vi.mock("@/repositories/logs", () => ({
@@ -19,6 +22,17 @@ vi.mock("@/repositories/meals", () => ({
 vi.mock("@/lib/openai/coach", () => ({
   replyCoachChat: mocks.replyCoachChat,
 }));
+vi.mock("@/repositories/sales-profiles", async () => {
+  const actual = await vi.importActual<typeof import("@/repositories/sales-profiles")>(
+    "@/repositories/sales-profiles",
+  );
+  return {
+    ...actual,
+    getMemberSalesProfile: mocks.getMemberSalesProfile,
+    mergeSalesSignals: mocks.mergeSalesSignals,
+    markPlanRecommended: mocks.markPlanRecommended,
+  };
+});
 
 import {
   COACH_CHAT_DAILY_LIMIT,
@@ -45,6 +59,21 @@ describe("coach chat", () => {
       usage: { prompt: 10, completion: 20 },
       model: "gpt-4o-mini",
     });
+    const salesProfile = {
+      member_id: "member-1",
+      menu_need_score: 0,
+      accountability_need_score: 0,
+      challenge_need_score: 0,
+      purchase_intent_score: 0,
+      price_sensitive: false,
+      sales_paused_until: null,
+      tags: [],
+      last_recommended_plan: null,
+      last_recommended_at: null,
+      updated_at: "2026-08-02T00:00:00.000Z",
+    };
+    mocks.getMemberSalesProfile.mockResolvedValue(salesProfile);
+    mocks.mergeSalesSignals.mockResolvedValue(salesProfile);
   });
 
   it("answers with GPT using SQL daily context and does not claim meal quota", async () => {
