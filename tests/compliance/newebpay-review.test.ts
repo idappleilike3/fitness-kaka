@@ -29,6 +29,7 @@ describe("NewebPay review disclosures", () => {
     expect(aiPage).toContain("OpenAI API");
     expect(aiPage).toContain("餐點照片");
     expect(aiPage).toContain("使用者確認");
+    expect(aiPage).toContain("限制與人工確認");
     expect(aiPage).toContain("非醫療診斷");
     expect(readPage("page.tsx")).toContain('href="/ai-platform"');
     expect(readPage("privacy/page.tsx")).toContain('href="/ai-platform"');
