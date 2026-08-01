@@ -39,27 +39,6 @@ export async function getLineProfile(
   return displayName ? { displayName } : null;
 }
 
-
-export async function startLoadingAnimation(
-  userId: string,
-  loadingSeconds = 20,
-): Promise<void> {
-  const env = getLineEnv();
-  const seconds = Math.min(60, Math.max(5, Math.round(loadingSeconds)));
-  const res = await fetch(`${LINE_API}/chat/loading/start`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ chatId: userId, loadingSeconds: seconds }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`LINE loading animation failed: ${res.status} ${text}`);
-  }
-}
-
 export async function replyMessage(
   replyToken: string,
   messages: unknown[],
@@ -92,6 +71,10 @@ export async function replyText(
 }
 
 export async function pushText(userId: string, text: string): Promise<void> {
+  await pushMessages(userId, [{ type: "text", text: sanitizeLineText(text) }]);
+}
+
+export async function pushMessages(userId: string, messages: unknown[]): Promise<void> {
   const env = getLineEnv();
   const res = await fetch(`${LINE_API}/message/push`, {
     method: "POST",
@@ -101,7 +84,7 @@ export async function pushText(userId: string, text: string): Promise<void> {
     },
     body: JSON.stringify({
       to: userId,
-      messages: [{ type: "text", text: sanitizeLineText(text) }],
+      messages: sanitizeOutgoingMessages(messages),
     }),
   });
   if (!res.ok) {
