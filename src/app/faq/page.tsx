@@ -55,6 +55,18 @@ function buildFaqs(supportEmail: string): { question: string; answer: ReactNode 
         "卡卡會依照片或文字估算熱量與營養，結果僅供生活管理參考，實際份量與食材仍可能造成差異，非醫療診斷。",
     },
     {
+      question: "健身卡卡使用哪一個 AI 平台？",
+      answer: (
+        <>
+          本服務透過 OpenAI API 協助理解餐點照片、飲食文字與語音內容，並產生營養推估及教練式建議；使用者確認後才會寫入個人紀錄。完整資料範圍與處理流程請見
+          <Link href="/ai-platform" style={{ color: "var(--cyan)", fontWeight: 700 }}>
+            AI 串接平台說明
+          </Link>
+          。
+        </>
+      ),
+    },
+    {
       question: "我的資料誰看得到？隱私怎麼保護？",
       answer: (
         <>
@@ -90,7 +102,16 @@ function buildFaqs(supportEmail: string): { question: string; answer: ReactNode 
           <a href={`mailto:${supportEmail}`} style={{ color: "var(--cyan)", fontWeight: 700 }}>
             {supportEmail}
           </a>
-          ，或透過 LINE 官方帳號留言。
+          ，或透過 LINE 官方帳號 ID：
+          <a
+            href="https://line.me/R/ti/p/@146iqokj"
+            rel="noopener noreferrer"
+            target="_blank"
+            style={{ color: "var(--cyan)", fontWeight: 700 }}
+          >
+            @146iqokj
+          </a>
+          留言。
         </>
       ),
     },

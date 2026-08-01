@@ -22,12 +22,12 @@ import styles from "./page.module.css";
  * Full 5-section dashboard / 30-day challenge / Chart.js → next phase.
  */
 
-const LINE_OA_PLACEHOLDER = "https://line.me/R/ti/p/";
+const LINE_OA_FALLBACK = "https://line.me/R/ti/p/@146iqokj";
 
 function resolveLineOaUrl(): string {
   const fromEnv = process.env.LINE_OA_URL?.trim();
   if (fromEnv) return fromEnv;
-  return LINE_OA_PLACEHOLDER;
+  return LINE_OA_FALLBACK;
 }
 
 export default function HomePage() {
@@ -172,10 +172,11 @@ export default function HomePage() {
           <nav className={styles.footerLinks} aria-label="網站連結">
             <Link href="/faq">FAQ</Link>
             <a href={`mailto:${supportEmail}`}>聯絡／支援</a>
-            <a href={lineUrl} rel="noopener noreferrer" target="_blank">LINE 官方帳號</a>
+            <a href={lineUrl} rel="noopener noreferrer" target="_blank">LINE 官方帳號 ID：@146iqokj</a>
             <Link href="/privacy">隱私權政策</Link>
             <Link href="/terms">服務條款</Link>
             <Link href="/refund">退款政策</Link>
+            <Link href="/ai-platform">AI 串接平台說明</Link>
             <span>正式服務</span>
           </nav>
         </div>

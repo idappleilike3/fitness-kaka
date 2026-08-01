@@ -7,7 +7,7 @@ export default function RefundPage() {
   return (
     <main style={{ padding: "2rem", maxWidth: 720, margin: "0 auto", lineHeight: 1.7 }}>
       <h1>退款政策 — 健身卡卡教練</h1>
-      <p style={{ color: "#666", fontSize: "0.95rem" }}>最後更新：2026-07-25</p>
+      <p style={{ color: "#666", fontSize: "0.95rem" }}>最後更新：2026-08-02</p>
 
       <p>
         本服務「健身卡卡教練」為透過 LINE
@@ -64,7 +64,13 @@ export default function RefundPage() {
           客服信箱：
           <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
         </li>
-        <li>LINE 官方帳號：於官方帳號對話中說明「申請退款」</li>
+        <li>
+          LINE 官方帳號 ID：
+          <a href="https://line.me/R/ti/p/@146iqokj" rel="noopener noreferrer" target="_blank">
+            @146iqokj
+          </a>
+          （請於對話中說明「申請退款」）
+        </li>
       </ul>
       <p>我們將於收到完整資料後 <strong>3–5 個工作天</strong>回覆審核結果。</p>
 
@@ -73,7 +79,9 @@ export default function RefundPage() {
         <li>審核通過後，將透過藍新金流原路退回原付款方式。</li>
         <li>退款入帳時間依發卡銀行／付款工具而定，通常約 7–14 個工作天。</li>
         <li>退款完成後，該筆訂單對應之付費額度將立即停用，帳號回到免費額度。</li>
-        <li>金流手續費若依藍新或銀行規定無法退回，我們得自退款金額中扣除實際已發生之必要費用（會事先告知）。</li>
+        <li>
+          本服務不會以金流處理費為由扣款。若退款案件另產生必要的人工核對、帳務更正或其他行政作業，可能酌收合理行政處理費；實際金額與計算方式會在退款前清楚告知並取得申請人確認。重複扣款或可歸責於本服務的系統錯誤，不收取行政處理費。
+        </li>
       </ol>
 
       <h2>六、其他說明</h2>

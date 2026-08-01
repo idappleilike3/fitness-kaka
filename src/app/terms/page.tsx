@@ -20,6 +20,11 @@ export default function TermsPage() {
         ；客服信箱：
         <a href={`mailto:${supportEmail}`}>{supportEmail}</a>。
       </p>
+      <p>
+        AI 服務供應商、處理資料範圍與使用方式請見
+        <Link href="/ai-platform">AI 串接平台說明</Link>；LINE 官方帳號 ID：
+        <a href="https://line.me/R/ti/p/@146iqokj" rel="noopener noreferrer" target="_blank">@146iqokj</a>。
+      </p>
     </main>
   );
 }
