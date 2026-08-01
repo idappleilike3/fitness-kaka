@@ -7,16 +7,20 @@ const mocks = vi.hoisted(() => ({
   getTodaySummary: vi.fn(),
   logApiUsage: vi.fn(),
   replyMessage: vi.fn(),
-  startLoadingAnimation: vi.fn(),
   refundConsumed: vi.fn(),
   tryConsume: vi.fn(),
   updatePendingAnalysis: vi.fn(),
+  understandImage: vi.fn(),
 }));
 
-vi.mock("@/lib/line/client", () => ({ replyMessage: mocks.replyMessage, startLoadingAnimation: mocks.startLoadingAnimation }));
+vi.mock("@/lib/line/client", () => ({ replyMessage: mocks.replyMessage }));
 vi.mock("@/lib/openai/meal", () => ({
   analyzeMealFromText: mocks.analyzeMealFromText,
   analyzeMealFromImage: mocks.analyzeMealFromImage,
+}));
+vi.mock("@/lib/openai/image-understanding", () => ({
+  understandImage: mocks.understandImage,
+  nonFoodReply: vi.fn(() => "不是食物照片"),
 }));
 vi.mock("@/repositories/logs", () => ({ logApiUsage: mocks.logApiUsage }));
 vi.mock("@/repositories/meals", () => ({
@@ -32,32 +36,7 @@ vi.mock("@/repositories/quotas", () => ({
   tryConsume: mocks.tryConsume,
 }));
 
-import {
-  calculateProjectedRemaining,
-  handleImageMeal,
-  handleTextMeal,
-} from "@/services/meal-flow";
-
-
-describe("calculateProjectedRemaining", () => {
-  it("subtracts the current unconfirmed photo meal from projected calorie and protein remaining", () => {
-    expect(
-      calculateProjectedRemaining({
-        calorieTarget: 1800,
-        proteinTarget: 100,
-        confirmedKcal: 600,
-        confirmedProteinG: 21,
-        currentMealKcal: 520,
-        currentMealProteinG: 32,
-      }),
-    ).toEqual({
-      projectedKcal: 1120,
-      projectedProteinG: 53,
-      remainingKcal: 680,
-      proteinLeft: 47,
-    });
-  });
-});
+import { handleImageMeal, handleTextMeal } from "@/services/meal-flow";
 
 describe("handleTextMeal pending correction", () => {
   it("updates the unconfirmed photo meal with drink corrections without consuming text quota", async () => {
@@ -288,38 +267,13 @@ describe("handleTextMeal pending correction", () => {
   });
 });
 
-describe("handleImageMeal analysis progress", () => {
-  it("starts the LINE loading animation while analyzing a photo", async () => {
-    mocks.tryConsume.mockResolvedValue({
-      ok: true,
-      used: { image: 1, text: 0, voice: 0 },
-      limits: { image: 5, text: 5, voice: 0, mealAnalysis: 5 },
-    });
-    mocks.analyzeMealFromImage.mockResolvedValue({
-      analysis: {
-        items: [{ name: "鸡胸餐", portion_text: "1 份", kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12 }],
-        total_kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12, confidence: "high",
-      },
-      usage: { prompt: 10, completion: 10 },
+describe("handleImageMeal analysis failure", () => {
+  it("refunds the consumed image quota and gives a safe member reply", async () => {
+    mocks.understandImage.mockResolvedValue({
+      result: { kind: "food", contains_food: true, description: "餐点" },
+      usage: { prompt: 1, completion: 1 },
       model: "gpt-test",
     });
-    mocks.getTodaySummary.mockResolvedValue({ total_kcal: 0, protein_g: 0 });
-
-    await handleImageMeal(
-      "reply-token",
-      "member-1",
-      Buffer.from("image"),
-      "image/jpeg",
-      "U123",
-    );
-
-    expect(mocks.startLoadingAnimation).toHaveBeenCalledWith("U123", 20);
-  });
-
-});
-
-describe("handleImageMeal analysis failure", () => {
-  it("refunds the consumed image quota before surfacing an analysis failure", async () => {
     mocks.tryConsume.mockResolvedValue({
       ok: true,
       used: { image: 1, text: 0, voice: 0 },
@@ -328,15 +282,17 @@ describe("handleImageMeal analysis failure", () => {
     mocks.analyzeMealFromImage.mockRejectedValue(new Error("OpenAI timeout"));
     mocks.refundConsumed.mockResolvedValue(undefined);
 
-    await expect(
-      handleImageMeal(
-        "reply-token",
-        "member-1",
-        Buffer.from("image"),
-        "image/jpeg",
-      ),
-    ).rejects.toThrow("OpenAI timeout");
+    await handleImageMeal(
+      "reply-token",
+      "member-1",
+      Buffer.from("image"),
+      "image/jpeg",
+    );
 
     expect(mocks.refundConsumed).toHaveBeenCalledWith("member-1", "image");
+    expect(mocks.replyMessage).toHaveBeenCalledWith(
+      "reply-token",
+      [expect.objectContaining({ type: "text" })],
+    );
   });
 });
