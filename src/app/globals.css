@@ -1,0 +1,69 @@
+:root {
+  --void: #0b0b16;
+  --panel: #120b24;
+  --text: #f4f2ff;
+  --text-mute: rgba(244, 242, 255, 0.72);
+  --text-dim: rgba(244, 242, 255, 0.48);
+  --cyan: #00f0ff;
+  --pink: #ff2d75;
+  --violet: #8b5cff;
+  --line-green: #06c755;
+  --radius: 14px;
+  --max: 68rem;
+  --font-display: "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --font-brand: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-body: "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--void);
+  font-family: var(--font-body), "Noto Sans TC", system-ui, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
