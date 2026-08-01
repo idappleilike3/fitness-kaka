@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getEnvConfigStatus, peekNewebpayMode } from "@/lib/env";
 import { parseHealthAdminHint } from "@/lib/service-unavailable";
 import { getAdminDb } from "@/lib/supabase/admin";
+import { getReleaseInfo } from "@/lib/release";
 
 export const runtime = "nodejs";
 
@@ -97,6 +98,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     product: "健身卡卡教練",
+    release: getReleaseInfo(),
     newebpayMode: peekNewebpayMode(),
     config: {
       line: config.line,
