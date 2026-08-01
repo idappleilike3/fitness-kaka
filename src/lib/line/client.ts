@@ -93,6 +93,25 @@ export async function pushMessages(userId: string, messages: unknown[]): Promise
   }
 }
 
+export async function startLoadingAnimation(
+  userId: string,
+  loadingSeconds: 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50 | 55 | 60 = 20,
+): Promise<void> {
+  const env = getLineEnv();
+  const res = await fetch(`${LINE_API}/chat/loading/start`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ chatId: userId, loadingSeconds }),
+  });
+  if (!res.ok) {
+    const textBody = await res.text();
+    throw new Error(`LINE loading animation failed: ${res.status} ${textBody}`);
+  }
+}
+
 export async function downloadContent(messageId: string): Promise<Buffer> {
   const env = getLineEnv();
   const res = await fetch(
