@@ -9,8 +9,16 @@
   },
   "crons": [
     {
-      "path": "/api/cron/member-engagement",
-      "schedule": "0 0,4,13 * * *"
+      "path": "/api/cron/member-engagement?window=morning",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/member-engagement?window=noon",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/member-engagement?window=evening",
+      "schedule": "0 13 * * *"
     }
   ]
 }
