@@ -16,6 +16,9 @@ export type ProfileRow = {
   protein_g_target: number | null;
   carb_g_target: number | null;
   fat_g_target: number | null;
+  bmi?: number | null;
+  bmr?: number | null;
+  tdee?: number | null;
   profile_completed_at: string | null;
 };
 
@@ -77,12 +80,18 @@ export async function completeProfileIfReady(memberId: string): Promise<{
   });
 
   const summary = [
-    "建檔完成！你的每日目標",
-    `BMI ${targets.bmi}｜BMR ${Math.round(targets.bmr)}｜TDEE ${Math.round(targets.tdee)}`,
-    `熱量 ${targets.calorieTarget} kcal`,
-    `蛋白質 ${targets.proteinG}g｜碳水 ${targets.carbG}g｜脂肪 ${targets.fatG}g`,
+    "基本分析完成了 🌿",
     "",
-    "傳食物照片或打字告訴我吃了什麼吧",
+    `你的 BMI 約為 ${targets.bmi}，基礎代謝約 ${Math.round(targets.bmr)} 大卡，每日總消耗約 ${Math.round(targets.tdee)} 大卡。`,
+    "",
+    `以目前目標來看，可以先從每天約 ${targets.calorieTarget} 大卡開始，不需要一下子吃得很少。`,
+    `蛋白質先以每天約 ${targets.proteinG} 克為目標；碳水約 ${targets.carbG} 克、脂肪約 ${targets.fatG} 克。`,
+    "",
+    "這些數字是起點，不是考試成績。之後我會依你的紀錄、飽足感和體重趨勢慢慢調整。",
+    "",
+    "傳食物照片或打字告訴我吃了什麼吧。",
+    "",
+    "本服務提供一般健康與熱量估算資訊，不取代醫師或營養師的診斷與治療。",
   ].join("\n");
 
   return { done: true, summary };
