@@ -541,7 +541,7 @@ describe("LINE onboarding recovery", () => {
     expect(mocks.handleCoachChat).not.toHaveBeenCalled();
     const replies = mocks.replyText.mock.calls.map((c: unknown[]) => c[1]);
     expect(replies.length).toBeGreaterThanOrEqual(1);
-    expect(replies.every((r: string) => !String(r).includes("加上…"))).toBe(
+    expect(replies.every((r) => !String(r).includes("加上…"))).toBe(
       true,
     );
     // Second emoji should not reuse the exact first canned string
