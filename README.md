@@ -97,3 +97,5 @@ Supabase：在 SQL Editor 執行 `supabase/migrations/001_init.sql`。
 ## 授權
 
 Private — 健身卡卡產品專用。
+
+<!-- production deploy trigger: complete v10 snapshot, 2026-08-02 -->
