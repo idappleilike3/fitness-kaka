@@ -35,30 +35,12 @@ function menuBody() {
     name: MENU_NAME,
     chatBarText: "教練選單",
     areas: [
-      {
-        bounds: bounds(0, 0),
-        action: { type: "postback", data: "menu:today", displayText: "今日還能吃多少" },
-      },
-      {
-        bounds: bounds(1, 0),
-        action: { type: "postback", data: "menu:meal", displayText: "記飲食" },
-      },
-      {
-        bounds: bounds(2, 0),
-        action: { type: "uri", uri: LIFF_URL },
-      },
-      {
-        bounds: bounds(0, 1),
-        action: { type: "postback", data: "menu:upgrade", displayText: "升級方案" },
-      },
-      {
-        bounds: bounds(1, 1),
-        action: { type: "postback", data: "menu:goals", displayText: "我的目標" },
-      },
-      {
-        bounds: bounds(2, 1),
-        action: { type: "postback", data: "menu:help", displayText: "幫助" },
-      },
+      { bounds: bounds(0, 0), action: { type: "postback", data: "menu:today", displayText: "今日還能吃多少" } },
+      { bounds: bounds(1, 0), action: { type: "postback", data: "menu:meal", displayText: "記飲食" } },
+      { bounds: bounds(2, 0), action: { type: "uri", uri: LIFF_URL } },
+      { bounds: bounds(0, 1), action: { type: "postback", data: "menu:upgrade", displayText: "升級方案" } },
+      { bounds: bounds(1, 1), action: { type: "postback", data: "menu:goals", displayText: "我的目標" } },
+      { bounds: bounds(2, 1), action: { type: "postback", data: "menu:help", displayText: "幫助" } },
     ],
   };
 }
@@ -72,9 +54,7 @@ async function lineFetch(token: string, url: string, init: RequestInit = {}) {
     },
   });
   const text = await response.text();
-  if (!response.ok) {
-    throw new Error(`LINE API ${response.status}: ${text.slice(0, 500)}`);
-  }
+  if (!response.ok) throw new Error(`LINE API ${response.status}: ${text.slice(0, 500)}`);
   return text ? JSON.parse(text) : null;
 }
 
@@ -102,16 +82,29 @@ export async function GET(request: NextRequest) {
     const source = await fetch(IMAGE_URL, { cache: "no-store" });
     if (!source.ok) throw new Error(`image fetch failed: ${source.status}`);
     const webp = Buffer.from(await source.arrayBuffer());
-    const png = await sharp(webp).resize(W, H, { fit: "fill" }).png().toBuffer();
+    const jpeg = await sharp(webp)
+      .resize(W, H, { fit: "fill" })
+      .flatten({ background: "#07110e" })
+      .jpeg({ quality: 78, mozjpeg: true, chromaSubsampling: "4:2:0" })
+      .toBuffer();
+    if (jpeg.length > 950_000) {
+      throw new Error(`compressed image still too large: ${jpeg.length} bytes`);
+    }
 
     await lineFetch(token, `${DATA_API}/richmenu/${richMenuId}/content`, {
       method: "POST",
-      headers: { "Content-Type": "image/png" },
-      body: png,
+      headers: { "Content-Type": "image/jpeg" },
+      body: jpeg,
     });
     await lineFetch(token, `${API}/user/all/richmenu/${richMenuId}`, { method: "POST" });
 
-    return NextResponse.json({ ok: true, richMenuId, menuName: MENU_NAME, liff: LIFF_URL });
+    return NextResponse.json({
+      ok: true,
+      richMenuId,
+      menuName: MENU_NAME,
+      liff: LIFF_URL,
+      imageBytes: jpeg.length,
+    });
   } catch (error) {
     console.error("[publish-rich-menu-once]", error);
     return NextResponse.json(
