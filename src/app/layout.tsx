@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,32 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Link
+          href="/member-login"
+          aria-label="會員登入"
+          style={{
+            position: "fixed",
+            right: 18,
+            bottom: 18,
+            zIndex: 9999,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 48,
+            padding: "0 18px",
+            borderRadius: 999,
+            background: "#06c755",
+            color: "#fff",
+            textDecoration: "none",
+            fontWeight: 900,
+            boxShadow: "0 12px 30px rgba(0,0,0,.28)",
+          }}
+        >
+          會員登入
+        </Link>
+      </body>
     </html>
   );
 }
