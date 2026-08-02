@@ -53,7 +53,7 @@ export async function GET() {
   }
 
   const base = sharp({ create: { width: W, height: H, channels: 4, background: "#EEE4FF" } });
-  const composites: sharp.OverlayOptions[] = [];
+  const composites: Array<{ input: Buffer; left: number; top: number }> = [];
   if (coach) {
     const resized = await sharp(coach).resize(520, 980, { fit: "cover", position: "top" }).toBuffer();
     composites.push({ input: resized, left: 0, top: 90 });
