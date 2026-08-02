@@ -1,0 +1,74 @@
+/* V10 responsive visual consistency */
+@media (min-width: 900px) {
+  [class*="heroInner"],
+  [class*="storySplit"],
+  [class*="personalStory"],
+  [class*="movementStory"],
+  [class*="plateauStory"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+  }
+
+  [class*="heroCopy"], [class*="heroVisual"],
+  [class*="storyCopy"], [class*="storyImage"],
+  [class*="personalCopy"], [class*="profileScanner"],
+  [class*="movementIntro"], [class*="movementModes"],
+  [class*="plateauPanel"], [class*="coachCases"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+[class*="storyImage"],
+[class*="storySwitchImage"],
+[class*="menuVisual"],
+[class*="visualFrame"],
+[class*="roadmapImage"],
+[class*="journeyStage"] {
+  overflow: hidden !important;
+}
+
+[class*="storySwitchImage"],
+[class*="menuVisual"] {
+  aspect-ratio: 4 / 3 !important;
+  width: 100% !important;
+}
+
+[class*="storySwitchImage"] img,
+[class*="menuVisual"] img,
+[class*="storyImage"] img,
+[class*="roadmapImage"] img,
+[class*="journeyStage"] > img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+@media (max-width: 899px) {
+  [class*="heroInner"],
+  [class*="storySplit"],
+  [class*="personalStory"],
+  [class*="movementStory"],
+  [class*="plateauStory"],
+  [class*="menuShowcase"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [class*="heroVisual"],
+  [class*="storyImage"],
+  [class*="storySwitchCard"],
+  [class*="menuShowcase"],
+  [class*="roadmapImage"],
+  [class*="journeyStage"] {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  [class*="storySwitchImage"],
+  [class*="menuVisual"] {
+    aspect-ratio: 4 / 3 !important;
+  }
+}
