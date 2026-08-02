@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./v10-responsive-overrides.css";
 
 export const metadata: Metadata = {
   title: "健身卡卡教練｜BODY OPTIMIZATION SYSTEM",
