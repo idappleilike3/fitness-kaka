@@ -1,0 +1,77 @@
+.kaka-admin-dark {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(45, 199, 118, 0.14), transparent 34%),
+    linear-gradient(145deg, #06100c, #0b1712 55%, #101722);
+  color: #effbf4;
+}
+
+.kaka-admin-dark main {
+  color: #effbf4 !important;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(45, 199, 118, 0.11), transparent 34%),
+    linear-gradient(145deg, #06100c, #0b1712 55%, #101722) !important;
+}
+
+.kaka-admin-dark form,
+.kaka-admin-dark article,
+.kaka-admin-dark section > div,
+.kaka-admin-dark details {
+  color: #effbf4;
+}
+
+.kaka-admin-dark article,
+.kaka-admin-dark form,
+.kaka-admin-dark [style*="background: rgb(255"],
+.kaka-admin-dark [style*="background: #fff"],
+.kaka-admin-dark [style*="background:#fff"] {
+  background: linear-gradient(145deg, #12231b, #0c1712) !important;
+  border-color: #294438 !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24) !important;
+}
+
+.kaka-admin-dark input,
+.kaka-admin-dark select,
+.kaka-admin-dark textarea {
+  color: #f3fff7 !important;
+  background: #08130e !important;
+  border-color: #355747 !important;
+}
+
+.kaka-admin-dark input::placeholder,
+.kaka-admin-dark textarea::placeholder {
+  color: #759486;
+}
+
+.kaka-admin-dark button {
+  color: #c8f4d9 !important;
+  background: #102018 !important;
+  border-color: #3a6a53 !important;
+}
+
+.kaka-admin-dark button[type="submit"],
+.kaka-admin-dark button[style*="border: 0"],
+.kaka-admin-dark button[style*="border:0"] {
+  color: #04130b !important;
+  background: linear-gradient(135deg, #6be79f, #2ec377) !important;
+  border-color: transparent !important;
+}
+
+.kaka-admin-dark small,
+.kaka-admin-dark p[style*="color"] {
+  color: #9ab3a6 !important;
+}
+
+.kaka-admin-dark a {
+  color: #7be7a8;
+}
+
+.kaka-admin-dark details {
+  border-top: 1px solid #294438;
+  padding-top: 12px;
+}
+
+.kaka-admin-dark summary {
+  color: #c8f4d9;
+  cursor: pointer;
+}
