@@ -1,8 +1,10 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { DEFAULT_SUPPORT_EMAIL } from "@/lib/support-email";
+import { useCallback, useEffect, useState } from "react";
+
+const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID?.trim() || "2010804832-oPIqeXjJ";
+const LIFF_URL = `https://liff.line.me/${LIFF_ID}`;
 
 declare global {
   interface Window {
@@ -10,6 +12,7 @@ declare global {
       init(options: { liffId: string }): Promise<void>;
       isLoggedIn(): boolean;
       login(options?: { redirectUri?: string }): void;
+      logout(): void;
       getProfile(): Promise<{ userId: string; displayName: string; pictureUrl?: string }>;
     };
   }
@@ -23,21 +26,16 @@ type Summary = {
   remainingKcal: number;
   planId: string;
   expiresAt: string | null;
-  menuOrder: { id: string; status: string; revision_count: number } | null;
-  healthScore: { status: "incomplete" | "ready"; score: number | null };
   challenge: {
     day: number;
     missionTitle: string | null;
-    missionDescription: string | null;
     missionCompleted: boolean;
     streakDays: number;
   };
 };
 
-type SellablePlan = "plan_299" | "plan_399" | "plan_799" | "plan_3590" | "plan_7190";
-
 const PLAN_LABELS: Record<string, string> = {
-  free: "免費",
+  free: "免費會員",
   plan_299: "7 天個人化減脂菜單",
   plan_399: "卡卡 Plus（月繳）",
   plan_799: "卡卡 Pro 教練（月繳）",
@@ -47,143 +45,123 @@ const PLAN_LABELS: Record<string, string> = {
 
 export default function LiffPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [status, setStatus] = useState("正在連接 LINE 會員登入…");
   const [error, setError] = useState<string | null>(null);
-  const [lineUserId, setLineUserId] = useState<string | null>(null);
-  const [paying, setPaying] = useState<SellablePlan | null>(null);
 
-  const initializeLiff = useCallback(async () => {
+  const login = useCallback(async () => {
+    setError(null);
+    setStatus("正在連接 LINE 會員登入…");
+
     try {
-      const liffId = process.env.NEXT_PUBLIC_LIFF_ID?.trim();
-      if (!liffId) {
-        setError("會員登入尚未完成 LIFF ID 設定，請聯絡卡卡客服。");
-        return;
-      }
-
       const sdk = window.liff;
-      if (!sdk) return;
-      await sdk.init({ liffId });
+      if (!sdk) {
+        throw new Error("LINE 登入元件尚未載入，請重新整理一次。");
+      }
+
+      await sdk.init({ liffId: LIFF_ID });
+
       if (!sdk.isLoggedIn()) {
-        sdk.login({ redirectUri: window.location.href });
+        setStatus("正在開啟 LINE 登入…");
+        sdk.login({ redirectUri: `${window.location.origin}/liff` });
         return;
       }
 
+      setStatus("正在讀取會員資料…");
       const profile = await sdk.getProfile();
-      const uid = profile.userId;
-      setLineUserId(uid);
-      const res = await fetch(`/api/liff/summary?lineUserId=${encodeURIComponent(uid)}`);
-      if (!res.ok) throw new Error("無法載入會員資料");
-      setSummary((await res.json()) as Summary);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "LINE 登入失敗，請重新開啟會員中心。");
+      setDisplayName(profile.displayName || "會員");
+
+      const response = await fetch(
+        `/api/liff/summary?lineUserId=${encodeURIComponent(profile.userId)}`,
+        { cache: "no-store" },
+      );
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.error || "會員資料讀取失敗，請重新登入。");
+      }
+      setSummary(body as Summary);
+      setStatus("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "LINE 登入失敗，請重新開啟會員中心。");
+      setStatus("");
     }
   }, []);
 
   useEffect(() => {
-    if (window.liff) void initializeLiff();
-  }, [initializeLiff]);
-
-  async function startPay(planId: SellablePlan) {
-    if (!lineUserId) return;
-    setPaying(planId);
-    setError(null);
-    try {
-      const res = await fetch("/api/newebpay/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lineUserId, planId }),
-      });
-      const data = (await res.json()) as { payUrl?: string; error?: string };
-      if (!res.ok || !data.payUrl) {
-        setError(data.error ?? "無法建立訂單");
-        return;
+    const timeout = window.setTimeout(() => {
+      if (!summary && !error) {
+        setError("登入等待超過 15 秒，請按下方按鈕重新登入。");
+        setStatus("");
       }
-      window.location.href = data.payUrl;
-    } catch {
-      setError("無法建立訂單");
-    } finally {
-      setPaying(null);
-    }
-  }
-
-  const btnStyle: CSSProperties = {
-    display: "block",
-    width: "100%",
-    marginTop: "0.75rem",
-    padding: "0.75rem 1.25rem",
-    border: "none",
-    background: "#111",
-    color: "#fff",
-    fontSize: "1rem",
-    cursor: "pointer",
-    textAlign: "left",
-  };
+    }, 15000);
+    return () => window.clearTimeout(timeout);
+  }, [summary, error]);
 
   return (
     <>
       <Script
         src="https://static.line-scdn.net/liff/edge/2/sdk.js"
         strategy="afterInteractive"
-        onLoad={() => void initializeLiff()}
+        onLoad={() => void login()}
+        onError={() => {
+          setStatus("");
+          setError("LINE 登入元件載入失敗，請檢查網路後重試。");
+        }}
       />
-      <main style={{ padding: "1.5rem", maxWidth: 480, margin: "0 auto" }}>
-        <h1 style={{ fontSize: "1.75rem", marginBottom: "0.25rem" }}>健身卡卡教練</h1>
-        <p style={{ color: "#555", marginTop: 0 }}>今日總覽</p>
-        {error && <p style={{ color: "#b00020" }}>{error}</p>}
-        {!error && !summary ? <p>正在登入並載入會員資料…</p> : null}
-        {summary && (
-          <section style={{ lineHeight: 1.8 }}>
-            <p>今日熱量：{summary.todayKcal} / {summary.calorieTarget} kcal</p>
-            <p>剩餘：{summary.remainingKcal} kcal</p>
-            <p>蛋白質：{summary.todayProtein} / {summary.proteinTarget} g</p>
-            <p>方案：{PLAN_LABELS[summary.planId] ?? summary.planId}</p>
-            <p>到期日：{summary.expiresAt ?? "免費（無到期）"}</p>
-            <section style={{ marginTop: "1.25rem", padding: "1rem", border: "1px solid #ddd", borderRadius: 12 }}>
-              <strong>30 天挑戰</strong>
-              {summary.challenge.day === 0 ? (
-                <p>到 LINE 輸入「我要參加三十天減脂挑戰」，從今天 Day 1 開始</p>
-              ) : (
-                <>
-                  <p>Day {summary.challenge.day} · 連續紀錄 {summary.challenge.streakDays} 天</p>
-                  <p>今日任務：{summary.challenge.missionTitle ?? "確認一餐"}（{summary.challenge.missionCompleted ? "已完成" : "待完成"}）</p>
-                </>
-              )}
-              <p>今日健康分數：{summary.healthScore.status === "ready" ? ` ${summary.healthScore.score}／100` : " 資料不足，確認一餐並完成目標設定後顯示"}</p>
-            </section>
 
-            <p style={{ marginTop: "1.25rem", marginBottom: 0, fontWeight: 600 }}>升級方案（一次付清）</p>
-            <p style={{ fontSize: "0.9rem", color: "#555", marginTop: "0.25rem" }}>免費體驗：照片＋打字共用 5 次／天、聊天不扣、語音 0。付費方案的圖片、文字、語音額度分開計算；年繳與月繳額度相同。</p>
+      <main style={{ minHeight: "100vh", background: "#090b10", color: "#f7f7fb", padding: "24px 16px" }}>
+        <section style={{ maxWidth: 520, margin: "0 auto", background: "#121720", border: "1px solid #283241", borderRadius: 24, padding: 24, boxShadow: "0 22px 70px rgba(0,0,0,.4)" }}>
+          <p style={{ color: "#bda6ff", fontWeight: 800, margin: 0 }}>KAKA FITNESS</p>
+          <h1 style={{ fontSize: 30, margin: "8px 0 4px" }}>健身卡卡會員中心</h1>
+          <p style={{ color: "#9fa9b8", marginTop: 0 }}>LINE 安全登入・查看今天的飲食與挑戰進度</p>
 
-            <p style={{ marginTop: "1rem", marginBottom: 0, fontWeight: 600 }}>一次性個人化菜單</p>
-            <button type="button" disabled={paying !== null} onClick={() => void startPay("plan_299")} style={{ ...btnStyle, background: "#7a5b40" }}>
-              {paying === "plan_299" ? "建立訂單中…" : "7 天個人化減脂菜單 NT$299"}
-            </button>
-            <p style={{ fontSize: "0.85rem", color: "#666" }}>付款後填寫飲食問卷，系統會依你的熱量、蛋白質目標和生活方式生成菜單，並可免費重新生成一次。</p>
-            {summary.menuOrder ? <a href={`/menu-plan?lineUserId=${encodeURIComponent(lineUserId ?? "")}`} style={{ display: "block", marginTop: 8 }}>打開我的 7 天菜單</a> : null}
+          {status ? <p style={{ padding: 16, borderRadius: 14, background: "#1b2230" }}>{status}</p> : null}
 
-            <p style={{ marginTop: "1rem", marginBottom: 0, fontWeight: 600 }}>月繳（30 天）</p>
-            <button type="button" disabled={paying !== null} onClick={() => void startPay("plan_399")} style={btnStyle}>
-              {paying === "plan_399" ? "建立訂單中…" : "卡卡 Plus NT$399（圖 10／文 30／語音 5）"}
-            </button>
-            <button type="button" disabled={paying !== null} onClick={() => void startPay("plan_799")} style={{ ...btnStyle, background: "#1a4d2e" }}>
-              {paying === "plan_799" ? "建立訂單中…" : "卡卡 Pro 教練 NT$799（圖 25／文 60／語音 15）"}
-            </button>
+          {error ? (
+            <div style={{ padding: 16, borderRadius: 14, background: "#311923", border: "1px solid #773449" }}>
+              <strong>登入尚未完成</strong>
+              <p style={{ marginBottom: 12 }}>{error}</p>
+              <button type="button" onClick={() => void login()} style={{ width: "100%", border: 0, borderRadius: 999, padding: "13px 18px", background: "#06c755", color: "white", fontWeight: 900, fontSize: 16 }}>
+                重新使用 LINE 登入
+              </button>
+              <a href={LIFF_URL} style={{ display: "block", textAlign: "center", color: "#cbb9ff", marginTop: 14 }}>
+                從 LINE 重新開啟會員中心
+              </a>
+            </div>
+          ) : null}
 
-            <p style={{ marginTop: "1.25rem", marginBottom: 0, fontWeight: 600 }}>年繳（365 天・更划算）</p>
-            <button type="button" disabled={paying !== null} onClick={() => void startPay("plan_3590")} style={btnStyle}>
-              {paying === "plan_3590" ? "建立訂單中…" : "卡卡 Plus NT$3590／年（一天不到 10 元）"}
-            </button>
-            <p style={{ fontSize: "0.8rem", color: "#888", margin: "0.2rem 0 0" }}><s>月繳約 NT$4788</s> ・ 年繳更省</p>
-            <button type="button" disabled={paying !== null} onClick={() => void startPay("plan_7190")} style={{ ...btnStyle, background: "#1a4d2e" }}>
-              {paying === "plan_7190" ? "建立訂單中…" : "卡卡 Pro 教練 NT$7190／年（一天不到 20 元）"}
-            </button>
-            <p style={{ fontSize: "0.8rem", color: "#888", margin: "0.2rem 0 0" }}><s>月繳約 NT$9588</s> ・ 年繳更省</p>
+          {summary ? (
+            <div>
+              <h2 style={{ marginBottom: 4 }}>{displayName}，今天也一起加油</h2>
+              <p style={{ color: "#9fa9b8", marginTop: 0 }}>{PLAN_LABELS[summary.planId] ?? summary.planId}</p>
 
-            <p style={{ fontSize: "0.85rem", color: "#666", marginTop: "1rem" }}>一次付清，無自動扣款；到期後回到免費額度。付費可用語音記飲食（最長 60 秒）。</p>
-            <p style={{ fontSize: "0.85rem" }}>
-              <a href="/privacy">隱私權政策</a> · <a href="/terms">使用條款</a> · <a href="/refund">退款政策</a> · <a href={`mailto:${DEFAULT_SUPPORT_EMAIL}`}>客服 {DEFAULT_SUPPORT_EMAIL}</a>
-            </p>
-          </section>
-        )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <article style={{ background: "#1b2230", borderRadius: 18, padding: 16 }}>
+                  <span style={{ color: "#aab4c3" }}>今日熱量</span>
+                  <strong style={{ display: "block", fontSize: 24 }}>{summary.todayKcal} / {summary.calorieTarget}</strong>
+                  <small>剩餘 {summary.remainingKcal} kcal</small>
+                </article>
+                <article style={{ background: "#1b2230", borderRadius: 18, padding: 16 }}>
+                  <span style={{ color: "#aab4c3" }}>今日蛋白質</span>
+                  <strong style={{ display: "block", fontSize: 24 }}>{summary.todayProtein} / {summary.proteinTarget} g</strong>
+                </article>
+              </div>
+
+              <article style={{ marginTop: 12, background: "linear-gradient(135deg,#30205a,#1b2230)", borderRadius: 18, padding: 18 }}>
+                <strong>30 天挑戰</strong>
+                <p style={{ marginBottom: 0 }}>
+                  {summary.challenge.day > 0
+                    ? `Day ${summary.challenge.day}・連續 ${summary.challenge.streakDays} 天・${summary.challenge.missionCompleted ? "今日已完成" : summary.challenge.missionTitle || "等待完成今日任務"}`
+                    : "尚未開始，回 LINE 輸入「我要參加三十天減脂挑戰」即可開始。"}
+                </p>
+              </article>
+
+              <a href="/" style={{ display: "block", marginTop: 18, textAlign: "center", borderRadius: 999, padding: 14, background: "#8b5cf6", color: "white", textDecoration: "none", fontWeight: 900 }}>
+                返回健身卡卡首頁
+              </a>
+            </div>
+          ) : null}
+        </section>
       </main>
     </>
   );
