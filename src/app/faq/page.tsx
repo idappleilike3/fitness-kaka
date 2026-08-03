@@ -102,14 +102,14 @@ function buildFaqs(supportEmail: string): { question: string; answer: ReactNode 
           <a href={`mailto:${supportEmail}`} style={{ color: "var(--cyan)", fontWeight: 700 }}>
             {supportEmail}
           </a>
-          ，或透過 LINE 官方帳號 ID：
+          ，或透過 LINE 官方帳號：
           <a
-            href="https://line.me/R/ti/p/@146iqokj"
+            href="https://lin.ee/5rxQDpa"
             rel="noopener noreferrer"
             target="_blank"
             style={{ color: "var(--cyan)", fontWeight: 700 }}
           >
-            @146iqokj
+            健身卡卡
           </a>
           留言。
         </>

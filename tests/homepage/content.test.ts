@@ -15,6 +15,25 @@ describe("homepage commercial content", () => {
     expect(page).not.toMatch(/Beta|測試中/i);
   });
 
+  it("uses the Fitness Kaka LINE account instead of another product account", () => {
+    expect(page).toContain('const LINE_OA_FALLBACK = "https://lin.ee/5rxQDpa"');
+    expect(page).not.toContain("@146iqokj");
+  });
+
+  it("gives visitors visible member login and seven-day trial actions", () => {
+    expect(page).toContain('href="/member-login"');
+    expect(page).toContain("會員登入");
+    expect(page).toContain("開始 7 天免費體驗");
+    expect(page).not.toMatch(/14\s*天(?:免費)?體驗/);
+  });
+
+  it("explains what visitors experience during the seven-day trial", () => {
+    expect(page).toContain('id="trial"');
+    for (const text of ["建立個人目標", "拍照看懂每一餐", "每天知道下一步"]) {
+      expect(page).toContain(text);
+    }
+  });
+
   it("publishes the NT$299 seven-day menu offer", () => {
     expect(plans).toContain('monthlyPrice: "NT$299"');
     expect(plans).toContain("完整 Day 1～Day 7 菜單");

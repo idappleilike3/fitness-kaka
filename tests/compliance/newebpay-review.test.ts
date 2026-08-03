@@ -6,11 +6,12 @@ const appRoot = resolve(process.cwd(), "src/app");
 const readPage = (path: string) => readFileSync(resolve(appRoot, path), "utf8");
 
 describe("NewebPay review disclosures", () => {
-  it("publishes the searchable LINE Official Account ID and a working add-friend URL", () => {
+  it("publishes the Fitness Kaka LINE account and never links another product account", () => {
     const content = [readPage("page.tsx"), readPage("faq/page.tsx"), readPage("refund/page.tsx")].join("\n");
 
-    expect(content).toContain("LINE 官方帳號 ID：@146iqokj");
-    expect(content).toContain("https://line.me/R/ti/p/@146iqokj");
+    expect(content).toContain("LINE 官方帳號：");
+    expect(content).toContain("https://lin.ee/5rxQDpa");
+    expect(content).not.toContain("@146iqokj");
   });
 
   it("does not deduct payment processing fees from refunds", () => {

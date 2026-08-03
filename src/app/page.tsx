@@ -22,7 +22,7 @@ import styles from "./page.module.css";
  * Full 5-section dashboard / 30-day challenge / Chart.js → next phase.
  */
 
-const LINE_OA_FALLBACK = "https://line.me/R/ti/p/@146iqokj";
+const LINE_OA_FALLBACK = "https://lin.ee/5rxQDpa";
 
 function resolveLineOaUrl(): string {
   const fromEnv = process.env.LINE_OA_URL?.trim();
@@ -45,13 +45,17 @@ export default function HomePage() {
           </a>
           <div className={styles.navLinks}>
             <a href="#how">怎麼使用</a>
+            <a href="#trial">7 天體驗</a>
             <a href="#features">功能</a>
             <a href="#challenge">30 天挑戰</a>
             <a href="#plans">方案</a>
           </div>
-          <a className={styles.navCta} href={lineUrl} rel="noopener noreferrer" target="_blank">
-            加入 LINE
-          </a>
+          <div className={styles.navActions}>
+            <Link className={styles.navLogin} href="/member-login">會員登入</Link>
+            <a className={styles.navCta} href={lineUrl} rel="noopener noreferrer" target="_blank">
+              免費體驗
+            </a>
+          </div>
         </div>
       </nav>
 
@@ -63,13 +67,13 @@ export default function HomePage() {
 
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
-            <p className={styles.systemTag}>KAKA · 30 DAY CHALLENGE</p>
+            <p className={styles.systemTag}>KAKA FITNESS · HEALTHY FAT LOSS</p>
             <h1 className={styles.brand}>健身卡卡教練</h1>
             <p className={styles.headline}>
-              不用節食，也不用每天算熱量
+              好好吃，也能健康減脂
             </p>
             <p className={styles.support}>
-              拍下每一餐，卡卡陪你完成 30 天減脂挑戰
+              從熱量、蛋白質到每一餐的選擇，卡卡用看得懂的圖片與指引，陪你一步一步瘦得健康、不復胖。
             </p>
             <div className={styles.ctaGroup}>
               <a
@@ -78,17 +82,18 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                立即免費開始挑戰
+                開始 7 天免費體驗
               </a>
+              <Link className={styles.ctaSecondary} href="/member-login">會員登入</Link>
             </div>
             <p className={styles.disclaimer}>
-              免費方案每日可使用照片＋文字共 5 次。AI 推估僅供生活參考，非醫療診斷。
+              先體驗個人目標、餐點拍照分析與每日營養指引。AI 推估供生活參考，不取代醫療或營養師建議。
             </p>
             <ul className={styles.trustRow} aria-label="服務特點">
-              <li>7 天個人化菜單</li>
-              <li>支援 LINE 使用</li>
-              <li>拍照即可分析</li>
-              <li>資料僅本人可見</li>
+              <li>不鼓勵極端節食</li>
+              <li>蛋白質與營養並重</li>
+              <li>LINE 拍照就能記錄</li>
+              <li>溫暖陪伴不責備</li>
             </ul>
           </div>
 
@@ -104,13 +109,44 @@ export default function HomePage() {
                 sizes="(max-width: 899px) 92vw, 46vw"
               />
             </div>
-            <p className={styles.visualCaption}>DAY BY DAY · 讓改變看得見</p>
+            <div className={styles.heroFloatCard}>
+              <span>今天的下一步</span>
+              <strong>晚餐補一份蛋白質</strong>
+              <small>不用少吃一餐，也能慢慢靠近目標</small>
+            </div>
+            <p className={styles.visualCaption}>EAT WELL · MOVE WELL · FEEL BETTER</p>
           </div>
         </div>
         <a className={styles.scrollCue} href="#problem" aria-label="向下查看">
           <span>SCROLL</span><i />
         </a>
       </header>
+
+      <section id="trial" className={styles.trialPreview} aria-labelledby="trial-title">
+        <div className={styles.sectionInner} data-reveal>
+          <p className={styles.sectionEyebrow}>7-DAY FREE EXPERIENCE</p>
+          <h2 id="trial-title" className={styles.sectionTitle}>進來就能免費體驗什麼？</h2>
+          <p className={styles.sectionLead}>不用先懂營養，也不用先準備完美菜單。從你的身體與生活開始，7 天把健康減脂變成每天都做得到的小步驟。</p>
+          <div className={styles.trialGrid}>
+            <article>
+              <span>01</span>
+              <div><small>第一步</small><h3>建立個人目標</h3><p>依身高、體重、活動量計算 BMI、BMR、TDEE，以及合理的熱量與蛋白質方向。</p></div>
+            </article>
+            <article>
+              <span>02</span>
+              <div><small>每一餐</small><h3>拍照看懂每一餐</h3><p>傳餐點照片，先看熱量、蛋白質、碳水與脂肪估算，確認後才寫入紀錄。</p></div>
+            </article>
+            <article>
+              <span>03</span>
+              <div><small>每一天</small><h3>每天知道下一步</h3><p>看到今天還能吃多少、還差多少蛋白質，以及下一餐最值得調整的一件事。</p></div>
+            </article>
+          </div>
+          <div className={styles.trialCtaRow}>
+            <a className={styles.ctaPrimary} href={lineUrl} rel="noopener noreferrer" target="_blank">開始 7 天免費體驗</a>
+            <span>加入 LINE 即可開始 · 不用下載 App</span>
+          </div>
+        </div>
+      </section>
 
       <PainStory />
       <ThreeStepJourney />
@@ -135,7 +171,7 @@ export default function HomePage() {
           <div className={styles.faqGrid}>
             <article><h3>辨識一定準確嗎？</h3><p>餐點與份量是 AI 推估，你可以修改後再確認。結果提供日常參考，不取代醫療或營養師建議。</p></article>
             <article><h3>一定要下載 App 嗎？</h3><p>不用，加入 LINE 就能開始使用與諮詢。</p></article>
-            <article><h3>免費方案可以做什麼？</h3><p>每天可使用照片與文字共 5 次，先完整體驗一餐的分析與記錄流程。</p></article>
+            <article><h3>7 天免費體驗可以做什麼？</h3><p>建立個人目標、拍照分析餐點，查看每天剩餘熱量與蛋白質方向，再決定是否繼續。</p></article>
           </div>
           <Link className={styles.textLink} href="/faq">查看完整常見問題 →</Link>
         </div>
@@ -156,7 +192,7 @@ export default function HomePage() {
               rel="noopener noreferrer"
               target="_blank"
             >
-              免費開始
+              開始 7 天免費體驗
             </a>
           </div>
           <p className={styles.disclaimerBlock}>
@@ -172,7 +208,7 @@ export default function HomePage() {
           <nav className={styles.footerLinks} aria-label="網站連結">
             <Link href="/faq">FAQ</Link>
             <a href={`mailto:${supportEmail}`}>聯絡／支援</a>
-            <a href={lineUrl} rel="noopener noreferrer" target="_blank">LINE 官方帳號 ID：@146iqokj</a>
+            <a href={lineUrl} rel="noopener noreferrer" target="_blank">加入健身卡卡 LINE</a>
             <Link href="/privacy">隱私權政策</Link>
             <Link href="/terms">服務條款</Link>
             <Link href="/refund">退款政策</Link>

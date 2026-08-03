@@ -1,12 +1,12 @@
 :root {
-  --void: #0b0b16;
-  --panel: #120b24;
-  --text: #f4f2ff;
-  --text-mute: rgba(244, 242, 255, 0.72);
-  --text-dim: rgba(244, 242, 255, 0.48);
-  --cyan: #00f0ff;
-  --pink: #ff2d75;
-  --violet: #8b5cff;
+  --void: #130a1d;
+  --panel: #251132;
+  --text: #fff9fd;
+  --text-mute: rgba(255, 249, 253, 0.76);
+  --text-dim: rgba(255, 249, 253, 0.54);
+  --cyan: #ffc4e0;
+  --pink: #ff5ca8;
+  --violet: #a578ff;
   --line-green: #06c755;
   --radius: 14px;
   --max: 68rem;

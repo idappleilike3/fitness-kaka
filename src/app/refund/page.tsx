@@ -65,9 +65,9 @@ export default function RefundPage() {
           <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
         </li>
         <li>
-          LINE 官方帳號 ID：
-          <a href="https://line.me/R/ti/p/@146iqokj" rel="noopener noreferrer" target="_blank">
-            @146iqokj
+          LINE 官方帳號：
+          <a href="https://lin.ee/5rxQDpa" rel="noopener noreferrer" target="_blank">
+            健身卡卡
           </a>
           （請於對話中說明「申請退款」）
         </li>

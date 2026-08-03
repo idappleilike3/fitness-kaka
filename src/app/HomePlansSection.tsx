@@ -25,11 +25,11 @@ type PlanDef = {
 const PLANS: PlanDef[] = [
   {
     id: "free",
-    tier: "體驗",
-    name: "免費",
+    tier: "7 天體驗",
+    name: "7 天免費體驗",
     featured: true,
-    badge: "先從這裡開始",
-    quota: "餐點分析：照片＋文字合計 5 次／天",
+    badge: "第一次減脂先從這裡開始",
+    quota: "7 天內體驗個人目標、餐點分析與每日營養方向",
     services: [
       { text: "AI 拍照分析", status: "ready" },
       { text: "BMI／BMR／TDEE 身體分析", status: "ready" },
@@ -37,9 +37,9 @@ const PLANS: PlanDef[] = [
     ],
     monthlyPrice: "NT$0",
     yearlyPrice: "NT$0",
-    yearlyNote: "先從一餐開始",
+    yearlyNote: "完整體驗 7 天",
     yearlyStrike: "",
-    monthlyNote: "先從一餐開始",
+    monthlyNote: "完整體驗 7 天",
   },
   {
     id: "menu299",
@@ -195,7 +195,7 @@ export function HomePlansSection({ lineUrl }: { lineUrl: string }) {
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  {plan.id === "free" ? "免費加入 LINE" : "LINE 諮詢購買"}
+                  {plan.id === "free" ? "開始 7 天免費體驗" : "LINE 諮詢購買"}
                 </a>
                 {plan.id !== "free" ? <small className={styles.linePurchaseNote}>加入 LINE 後，由卡卡教練確認需求與付款方式</small> : null}
               </article>
