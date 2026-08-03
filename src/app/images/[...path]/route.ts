@@ -60,6 +60,7 @@ const ASSETS: Record<string, string> = {
   "story-photo-analysis.png": asset25,
   "story-real-life.png": asset26,
   "story-roadmap.png": asset27,
+  "story-roadmap.webp": asset27,
 };
 
 export async function GET(
