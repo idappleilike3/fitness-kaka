@@ -7,7 +7,7 @@ export function PainStory() {
   return (
     <section id="problem" className={styles.storySection} aria-labelledby="problem-title">
       <div className={styles.storySplit} data-reveal>
-        <div className={styles.storyImage} data-tilt>
+        <div className={styles.storyImage} data-tilt data-tilt-preserve-image>
           <Image src="/images/story-real-life.webp" alt="忙碌外食時，用手機拍下餐點開始記錄" fill sizes="(max-width: 860px) 100vw, 52vw" />
           <div className={styles.floatingChoice}>
             <small>今天午餐</small>

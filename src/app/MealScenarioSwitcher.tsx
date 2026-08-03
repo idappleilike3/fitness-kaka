@@ -24,7 +24,7 @@ export const MEAL_SCENARIOS: readonly MealScenario[] = [
     id: "dining",
     label: "外食版",
     kicker: "午休 30 分鐘也能選",
-    image: "/images/story-real-life.webp",
+    image: "/images/scenario-dining-kaka.webp",
     imageAlt: "外食版卡卡教練陪你挑選健康餐盒",
     meal: "舒肥雞胸便當",
     calories: "620 kcal",
@@ -36,7 +36,7 @@ export const MEAL_SCENARIOS: readonly MealScenario[] = [
     id: "convenience",
     label: "超商版",
     kicker: "來不及吃飯的快速組合",
-    image: "/images/menu-day-2.webp",
+    image: "/images/scenario-convenience-kaka.webp",
     imageAlt: "超商版卡卡推薦鮪魚蛋吐司地瓜與無糖豆漿組合",
     meal: "鮪魚蛋吐司＋地瓜豆漿",
     calories: "510 kcal",
@@ -48,7 +48,7 @@ export const MEAL_SCENARIOS: readonly MealScenario[] = [
     id: "home",
     label: "居家版",
     kicker: "一鍋完成，少洗幾個碗",
-    image: "/images/menu-day-1.webp",
+    image: "/images/scenario-home-kaka.webp",
     imageAlt: "居家版卡卡示範鮭魚豆腐蔬菜鍋",
     meal: "鮭魚豆腐蔬菜鍋",
     calories: "560 kcal",
@@ -67,7 +67,7 @@ export function MealScenarioSwitcher() {
   const active = getMealScenario(activeId);
 
   return (
-    <div className={styles.scenarioShell} data-tilt data-reveal>
+    <div className={styles.scenarioShell} data-tilt data-tilt-preserve-image data-reveal>
       <div className={styles.scenarioTabs} role="tablist" aria-label="選擇今天的飲食情境">
         {MEAL_SCENARIOS.map((scenario) => (
           <button

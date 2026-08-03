@@ -101,7 +101,7 @@ export default function HomePage() {
           </div>
 
           <div className={styles.heroVisual}>
-            <div className={styles.visualFrame} data-tilt>
+            <div className={styles.visualFrame} data-tilt data-tilt-preserve-image>
               <Image
                 className={styles.challengeImage}
                 src="/images/hero-kaka-original.webp"

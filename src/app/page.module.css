@@ -706,6 +706,11 @@
   box-shadow:0 2.4rem 5.5rem rgba(5,1,10,.48),0 0 2.5rem rgba(156,108,255,.2);
 }
 .page [data-tilt][data-tilt-active="true"]::before { opacity:1; }
+.page [data-tilt-preserve-image] img {
+  transform: rotateX(calc(var(--tilt-x) * -1)) rotateY(calc(var(--tilt-y) * -1)) scale(1.035);
+  transition: transform .18s ease-out;
+  will-change: transform;
+}
 .page .storySection,
 .page .menuSection,
 .page .faqTeaser,
@@ -713,6 +718,46 @@
 .page .journeySection,
 .page .flexStory,
 .page .roadmapStory { background:linear-gradient(180deg,rgba(16,7,24,.96),rgba(26,10,39,.94),rgba(16,7,24,.96)); }
+
+/* Every feature is a real image-led story, not a repeated dashboard tile. */
+.page .featureScenes { display:grid; grid-template-columns:1fr; gap:clamp(1.2rem,3vw,2.2rem); }
+.page .featureScenes article {
+  min-height:clamp(25rem,43vw,34rem);
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(18rem,.92fr);
+  grid-template-areas:"media copy" "media demo";
+  align-items:center;
+  gap:1rem clamp(1.3rem,4vw,3.4rem);
+  padding:clamp(.75rem,1.5vw,1.1rem);
+  border-radius:2rem;
+}
+.page .featureScenes article:nth-child(even) {
+  grid-template-columns:minmax(18rem,.92fr) minmax(0,1.08fr);
+  grid-template-areas:"copy media" "demo media";
+}
+.page .featureScenes .featureMedia {
+  grid-area:media;
+  align-self:stretch;
+  min-height:24rem;
+  border-radius:1.45rem;
+}
+.page .featureScenes article > div:nth-child(2) { grid-area:copy; max-width:32rem; padding:1rem 1rem 0; }
+.page .featureScenes article > div:nth-child(3) { grid-area:demo; margin:0 1rem 1rem; }
+.page .featureScenes .featureMedia img { object-position:center; }
+
+@media (max-width: 760px) {
+  .page .featureScenes article,
+  .page .featureScenes article:nth-child(even) {
+    min-height:0;
+    grid-template-columns:1fr;
+    grid-template-areas:"media" "copy" "demo";
+    gap:.7rem;
+    border-radius:1.35rem;
+  }
+  .page .featureScenes .featureMedia { min-height:0; aspect-ratio:4/3; border-radius:1rem; }
+  .page .featureScenes article > div:nth-child(2) { padding:.8rem .55rem 0; }
+  .page .featureScenes article > div:nth-child(3) { margin:0 .55rem .7rem; }
+}
 .page .featureScenes article,
 .page .faqGrid article,
 .page .storySwitchCard,

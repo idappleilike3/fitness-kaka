@@ -23,6 +23,23 @@ export type MealAnalysisJson = {
   notes?: string;
 };
 
+export type ImageKind =
+  | "food"
+  | "person"
+  | "exercise"
+  | "pet"
+  | "scenery"
+  | "life"
+  | "product"
+  | "screenshot"
+  | "unknown";
+
+export type ImageUnderstanding = {
+  kind: ImageKind;
+  reply: string;
+  meal?: MealAnalysisJson;
+};
+
 export type NutritionTargets = {
   bmi: number;
   bmr: number;

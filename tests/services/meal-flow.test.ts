@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   analyzeMealFromImage: vi.fn(),
   analyzeMealFromText: vi.fn(),
+  understandImage: vi.fn(),
+  createPending: vi.fn(),
   getLatestPending: vi.fn(),
   getTodaySummary: vi.fn(),
   logApiUsage: vi.fn(),
@@ -18,8 +20,12 @@ vi.mock("@/lib/openai/meal", () => ({
   analyzeMealFromText: mocks.analyzeMealFromText,
   analyzeMealFromImage: mocks.analyzeMealFromImage,
 }));
+vi.mock("@/lib/openai/image-understanding", () => ({
+  understandImage: mocks.understandImage,
+}));
 vi.mock("@/repositories/logs", () => ({ logApiUsage: mocks.logApiUsage }));
 vi.mock("@/repositories/meals", () => ({
+  createPending: mocks.createPending,
   getLatestPending: mocks.getLatestPending,
   getTodaySummary: mocks.getTodaySummary,
   updatePendingAnalysis: mocks.updatePendingAnalysis,
@@ -37,6 +43,12 @@ import {
   handleImageMeal,
   handleTextMeal,
 } from "@/services/meal-flow";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.startLoadingAnimation.mockResolvedValue(undefined);
+  mocks.logApiUsage.mockResolvedValue(undefined);
+});
 
 
 describe("calculateProjectedRemaining", () => {
@@ -289,20 +301,86 @@ describe("handleTextMeal pending correction", () => {
 });
 
 describe("handleImageMeal analysis progress", () => {
+  it("replies naturally to a pet photo without consuming meal quota", async () => {
+    mocks.understandImage.mockResolvedValue({
+      kind: "pet",
+      reply: "也太可愛了吧，牠這個表情很有戲 😄 這是你家的毛孩嗎？",
+      usage: { prompt: 12, completion: 8 },
+      model: "gpt-test",
+    });
+
+    await handleImageMeal(
+      "reply-token",
+      "member-1",
+      Buffer.from("pet-image"),
+      "image/jpeg",
+      "U123",
+    );
+
+    expect(mocks.replyMessage).toHaveBeenCalledWith("reply-token", [
+      {
+        type: "text",
+        text: "也太可愛了吧，牠這個表情很有戲 😄 這是你家的毛孩嗎？",
+      },
+    ]);
+    expect(mocks.tryConsume).not.toHaveBeenCalled();
+    expect(mocks.createPending).not.toHaveBeenCalled();
+  });
+
+  it("talks about a food photo before returning its nutrition preview", async () => {
+    mocks.understandImage.mockResolvedValue({
+      kind: "food",
+      reply: "看起來是很豐富的雞胸餐盒，蔬菜和主食都有照顧到，我先幫你估算看看。",
+      meal: {
+        items: [{ name: "雞胸餐", portion_text: "1 份", kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12 }],
+        total_kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12, confidence: "high",
+      },
+      usage: { prompt: 10, completion: 10 },
+      model: "gpt-test",
+    });
+    mocks.tryConsume.mockResolvedValue({
+      ok: true,
+      used: { image: 1, text: 0, voice: 0 },
+      limits: { image: 5, text: 5, voice: 0, mealAnalysis: 5 },
+    });
+    mocks.createPending.mockResolvedValue("pending-1");
+    mocks.getTodaySummary.mockResolvedValue({ total_kcal: 0, protein_g: 0 });
+
+    await handleImageMeal(
+      "reply-token",
+      "member-1",
+      Buffer.from("food-image"),
+      "image/jpeg",
+      "U123",
+    );
+
+    expect(mocks.tryConsume).toHaveBeenCalledWith("member-1", "image");
+    expect(mocks.createPending).toHaveBeenCalledTimes(1);
+    expect(mocks.replyMessage).toHaveBeenNthCalledWith(1, "reply-token", [
+      {
+        type: "text",
+        text: "看起來是很豐富的雞胸餐盒，蔬菜和主食都有照顧到，我先幫你估算看看。",
+      },
+    ]);
+  });
+
   it("starts the LINE loading animation while analyzing a photo", async () => {
     mocks.tryConsume.mockResolvedValue({
       ok: true,
       used: { image: 1, text: 0, voice: 0 },
       limits: { image: 5, text: 5, voice: 0, mealAnalysis: 5 },
     });
-    mocks.analyzeMealFromImage.mockResolvedValue({
-      analysis: {
+    mocks.understandImage.mockResolvedValue({
+      kind: "food",
+      reply: "這份餐看起來很有飽足感，我來幫你估算。",
+      meal: {
         items: [{ name: "鸡胸餐", portion_text: "1 份", kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12 }],
         total_kcal: 450, protein_g: 35, carb_g: 40, fat_g: 12, confidence: "high",
       },
       usage: { prompt: 10, completion: 10 },
       model: "gpt-test",
     });
+    mocks.createPending.mockResolvedValue("pending-1");
     mocks.getTodaySummary.mockResolvedValue({ total_kcal: 0, protein_g: 0 });
 
     await handleImageMeal(
@@ -319,13 +397,13 @@ describe("handleImageMeal analysis progress", () => {
 });
 
 describe("handleImageMeal analysis failure", () => {
-  it("refunds the consumed image quota before surfacing an analysis failure", async () => {
+  it("does not consume image quota when visual understanding fails", async () => {
     mocks.tryConsume.mockResolvedValue({
       ok: true,
       used: { image: 1, text: 0, voice: 0 },
       limits: { image: 5, text: 5, voice: 0, mealAnalysis: 5 },
     });
-    mocks.analyzeMealFromImage.mockRejectedValue(new Error("OpenAI timeout"));
+    mocks.understandImage.mockRejectedValue(new Error("OpenAI timeout"));
     mocks.refundConsumed.mockResolvedValue(undefined);
 
     await expect(
@@ -337,6 +415,6 @@ describe("handleImageMeal analysis failure", () => {
       ),
     ).rejects.toThrow("OpenAI timeout");
 
-    expect(mocks.refundConsumed).toHaveBeenCalledWith("member-1", "image");
+    expect(mocks.refundConsumed).not.toHaveBeenCalled();
   });
 });

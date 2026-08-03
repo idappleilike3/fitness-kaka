@@ -12,7 +12,8 @@ import {
   quotaExhaustedMessage,
   voiceUpgradeCtaMessage,
 } from "@/lib/line/messages";
-import { analyzeMealFromImage, analyzeMealFromText } from "@/lib/openai/meal";
+import { analyzeMealFromText } from "@/lib/openai/meal";
+import { understandImage } from "@/lib/openai/image-understanding";
 import { transcribeAudio } from "@/lib/openai/whisper";
 import { logApiUsage } from "@/repositories/logs";
 import { recordConfirmedMealChallenge } from "@/repositories/challenges";
@@ -207,17 +208,6 @@ export async function handleImageMeal(
     return;
   }
 
-  const quota = await tryConsume(memberId, "image");
-  if (!quota.ok) {
-    await replyMessage(replyToken, [
-      {
-        type: "text",
-        text: quotaExhaustedMessage("image", quota.limits, quota.planId),
-      },
-    ]);
-    return;
-  }
-
   if (lineUserId) {
     await startLoadingAnimation(lineUserId, 20).catch((err) => {
       console.warn("[meal-flow] unable to start LINE loading animation", err);
@@ -225,30 +215,47 @@ export async function handleImageMeal(
   }
 
   const imageHash = crypto.createHash("sha256").update(buffer).digest("hex");
-  let result: Awaited<ReturnType<typeof analyzeMealFromImage>>;
+  const result = await understandImage(buffer, mime);
+  const { usage, model } = result;
+  await logApiUsage({
+    memberId,
+    model,
+    purpose: result.kind === "food" ? "vision_meal" : "vision_image_reply",
+    promptTokens: usage.prompt,
+    completionTokens: usage.completion,
+  });
+
+  if (result.kind !== "food" || !result.meal) {
+    await replyMessage(replyToken, [{ type: "text", text: result.reply }]);
+    return;
+  }
+
+  const quota = await tryConsume(memberId, "image");
+  if (!quota.ok) {
+    await replyMessage(replyToken, [
+      {
+        type: "text",
+        text: `${result.reply}\n\n${quotaExhaustedMessage("image", quota.limits, quota.planId)}`,
+      },
+    ]);
+    return;
+  }
+
   try {
-    result = await analyzeMealFromImage(buffer, mime);
+    const pendingId = await createPending({
+      memberId,
+      source: "image",
+      analysis: result.meal,
+      imageHash,
+    });
+    await replyMessage(replyToken, [{ type: "text", text: result.reply }]);
+    await replyMealPreview(replyToken, memberId, result.meal, pendingId);
   } catch (err) {
     await refundConsumed(memberId, "image").catch((refundErr) => {
       console.error("[meal-flow] image quota refund failed", refundErr);
     });
     throw err;
   }
-  const { analysis, usage, model } = result;
-  await logApiUsage({
-    memberId,
-    model,
-    purpose: "vision_meal",
-    promptTokens: usage.prompt,
-    completionTokens: usage.completion,
-  });
-  const pendingId = await createPending({
-    memberId,
-    source: "image",
-    analysis,
-    imageHash,
-  });
-  await replyMealPreview(replyToken, memberId, analysis, pendingId);
 }
 
 /**

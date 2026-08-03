@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ensureEventOnce: vi.fn(),
+  downloadContent: vi.fn(),
   getLineProfile: vi.fn(),
   getAdminDb: vi.fn(),
   getProfile: vi.fn(),
@@ -15,12 +16,13 @@ const mocks = vi.hoisted(() => ({
   getChallengeStatus: vi.fn(),
   startChallenge: vi.fn(),
   handleTextMeal: vi.fn(),
+  handleImageMeal: vi.fn(),
   handleCoachChat: vi.fn(),
   getLatestPending: vi.fn(),
 }));
 
 vi.mock("@/lib/line/client", () => ({
-  downloadContent: vi.fn(),
+  downloadContent: mocks.downloadContent,
   getLineProfile: mocks.getLineProfile,
   replyMessage: mocks.replyMessage,
   replyText: mocks.replyText,
@@ -79,7 +81,7 @@ vi.mock("@/services/coach-chat", () => ({
   handleCoachChat: mocks.handleCoachChat,
 }));
 vi.mock("@/services/meal-flow", () => ({
-  handleImageMeal: vi.fn(),
+  handleImageMeal: mocks.handleImageMeal,
   handleMealPostback: vi.fn(),
   handleTextMeal: mocks.handleTextMeal,
   handleVoiceMeal: vi.fn(),
@@ -267,6 +269,34 @@ describe("LINE onboarding recovery", () => {
     );
   });
 
+  it("downloads an unlocked LINE image once and routes it through the category-aware image flow", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValueOnce({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: null,
+    });
+    mocks.downloadContent.mockResolvedValue(Buffer.from("line-image"));
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-image",
+      source: { userId: "U123" },
+      message: { id: "image-1", type: "image" },
+    });
+
+    expect(mocks.downloadContent).toHaveBeenCalledTimes(1);
+    expect(mocks.downloadContent).toHaveBeenCalledWith("image-1");
+    expect(mocks.handleImageMeal).toHaveBeenCalledWith(
+      "reply",
+      "member-1",
+      expect.any(Buffer),
+      "image/jpeg",
+      "U123",
+    );
+  });
   it("automatically starts the goal questionnaire after welcoming a new follower", async () => {
     mocks.upsertMemberByLineUserId.mockResolvedValue({
       id: "member-1",
@@ -274,6 +304,16 @@ describe("LINE onboarding recovery", () => {
       display_name: "JENNIE",
       status: "active",
       onboarding_step: "goal",
+    });
+    mocks.getProfile.mockResolvedValue({
+      sex: null,
+      age: null,
+      height_cm: null,
+      weight_kg: null,
+      target_weight_kg: null,
+      activity_level: null,
+      workout_frequency: null,
+      goal_type: null,
     });
 
     await routeEvent({

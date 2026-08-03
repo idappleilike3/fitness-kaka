@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateTilt } from "@/app/PointerEffects";
+import fs from "node:fs";
+import path from "node:path";
 
 describe("pointer 3D effects", () => {
   it("keeps the card neutral at its center", () => {
@@ -13,5 +15,11 @@ describe("pointer 3D effects", () => {
 
   it("returns a safe neutral transform for zero-sized elements", () => {
     expect(calculateTilt({ clientX: 10, clientY: 10 }, { left: 0, top: 0, width: 0, height: 0 })).toEqual({ rotateX: 0, rotateY: 0 });
+  });
+
+  it("keeps branded people and food images facing their original direction", () => {
+    const css = fs.readFileSync(path.join(process.cwd(), "src/app/page.module.css"), "utf8");
+    expect(css).toContain("[data-tilt-preserve-image]");
+    expect(css).toContain("rotateY(calc(var(--tilt-y) * -1))");
   });
 });
