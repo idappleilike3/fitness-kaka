@@ -1,12 +1,13 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import { MovementGallery, PlateauGallery, RoadmapGallery } from "./InteractiveStoryGalleries";
+import { MealScenarioSwitcher } from "./MealScenarioSwitcher";
 
 export function PainStory() {
   return (
     <section id="problem" className={styles.storySection} aria-labelledby="problem-title">
       <div className={styles.storySplit} data-reveal>
-        <div className={styles.storyImage}>
+        <div className={styles.storyImage} data-tilt>
           <Image src="/images/story-real-life.webp" alt="忙碌外食時，用手機拍下餐點開始記錄" fill sizes="(max-width: 860px) 100vw, 52vw" />
           <div className={styles.floatingChoice}>
             <small>今天午餐</small>
@@ -67,18 +68,22 @@ export function FeatureStory() {
       </div>
       <div className={styles.featureScenes} data-reveal>
         <article className={styles.inputScene}>
+          <div className={styles.featureMedia}><Image src="/images/story-photo-analysis.webp" alt="卡卡用照片協助整理餐點營養" fill sizes="(max-width: 860px) 92vw, 45vw" /></div>
           <div><span>01 · 隨手記</span><h3>照片、文字、語音都能記</h3><p>依當下情境選最方便的方法，不用為了記錄停下生活。</p></div>
           <div className={styles.inputDock}><b>📷<small>拍照</small></b><b>⌨<small>文字</small></b><b>◉<small>語音</small></b></div>
         </article>
         <article className={styles.calorieScene}>
+          <div className={styles.featureMedia}><Image src="/images/menu-day-2.webp" alt="外食餐盒搭配今日剩餘熱量指引" fill sizes="(max-width: 860px) 92vw, 34vw" /></div>
           <div><span>02 · 剩餘額度</span><h3>今日還能吃多少</h3><p>依目標與已確認餐點，即時更新今天的空間。</p></div>
           <div className={styles.calorieRing}><strong>1,240</strong><small>kcal 可用</small></div>
         </article>
         <article className={styles.proteinScene}>
+          <div className={styles.featureMedia}><Image src="/images/menu-day-3.webp" alt="高蛋白餐點與每日蛋白質進度" fill sizes="(max-width: 860px) 92vw, 28vw" /></div>
           <div><span>03 · 營養追蹤</span><h3>減脂也要吃得完整</h3><p>同步追蹤蛋白質、碳水、脂肪、膳食纖維與喝水，不把少吃當成唯一答案。</p></div>
           <div className={styles.proteinMeter}><i /><strong>62 / 100 g</strong><small>晚餐再補 38g</small></div>
         </article>
         <article className={styles.confirmScene}>
+          <div className={styles.featureMedia}><Image src="/images/story-coach-support.webp" alt="卡卡教練陪使用者確認餐點分析" fill sizes="(max-width: 860px) 92vw, 28vw" /></div>
           <div><span>04 · 你來確認</span><h3>辨識正確，才存進紀錄</h3><p>份量或餐點不準都能修改，避免一次誤判影響整天。</p></div>
           <div className={styles.confirmCard}><span>雞胸肉 120g</span><span>糙米飯 半碗</span><span>花椰菜 1 份</span><b>修改份量　✓ 確認</b></div>
         </article>
@@ -100,7 +105,7 @@ export function PersonalPlanStory() {
         </div>
         <p className={styles.safetyNote}><b>安全優先</b>　卡卡不鼓勵極端節食。一般以每週約 0.25～0.75 公斤作為參考，再依 7～14 天趨勢調整。慢性病、懷孕或特殊健康狀況，應先諮詢合格醫療專業人員。</p>
       </div>
-      <div className={styles.profileScanner} data-reveal>
+      <div className={styles.profileScanner} data-reveal data-tilt>
         <div className={styles.scanHeader}><span>KAKA PROFILE</span><b>個人目標建議</b><i>已完成 86%</i></div>
         <div className={styles.scanBody}>
           <div className={styles.scanOrbit}><strong>1,680</strong><small>每日目標 kcal</small></div>
@@ -125,25 +130,8 @@ export function MealFlexStory() {
         <h2 id="flex-title" className={styles.sectionTitle}>菜單不是規定，是今天用得到的選擇</h2>
         <p className={styles.sectionLead}>外食環境、預算、食慾和活動量每天都不同。選一個做得到的版本，卡卡會重新計算今天的營養進度。</p>
       </div>
-      <div className={styles.mealWorkbench} data-reveal>
-        <aside>
-          <span>選擇今天的情境</span>
-          <b>外食版</b><b>超商版</b><b>居家版</b>
-          <small>也支援素食替換、不吃牛肉、乳製品或海鮮</small>
-        </aside>
-        <div className={styles.mealPlate}>
-          <span className={styles.plateProtein}>一掌心蛋白質</span>
-          <span className={styles.plateVeg}>兩拳<br /><b>蔬菜</b></span>
-          <span className={styles.plateCarb}>一拳<br /><b>主食</b></span>
-        </div>
-        <div className={styles.swapPanel}>
-          <small>今晚臨時聚餐？</small>
-          <h3>不用挨餓補償</h3>
-          <p>白天正常吃，聚餐先選蛋白質與蔬菜；飲料、醬料與主食擇一調整即可。</p>
-          <div><span>吃不飽</span><b>蔬菜或蛋白質 +1</b></div>
-          <div><span>太飽了</span><b>下餐回到正常份量</b></div>
-        </div>
-      </div>
+      <MealScenarioSwitcher />
+      <p className={styles.scenarioSupport} data-reveal>也支援素食替換、不吃牛肉、乳製品或海鮮；今晚臨時聚餐，也不用挨餓補償。</p>
     </section>
   );
 }

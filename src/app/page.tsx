@@ -15,6 +15,8 @@ import {
 import { ScrollReveal } from "./ScrollReveal";
 import { SevenDayMenu } from "./SevenDayMenu";
 import { resolveSupportEmail } from "@/lib/support-email";
+import { KakaChatbot } from "./KakaChatbot";
+import { PointerEffects } from "./PointerEffects";
 import styles from "./page.module.css";
 
 /**
@@ -37,6 +39,7 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <ScrollReveal />
+      <PointerEffects />
       <nav className={styles.topNav} aria-label="主要導覽">
         <div className={styles.navInner}>
           <a className={styles.navBrand} href="#top">
@@ -98,7 +101,7 @@ export default function HomePage() {
           </div>
 
           <div className={styles.heroVisual}>
-            <div className={styles.visualFrame}>
+            <div className={styles.visualFrame} data-tilt>
               <Image
                 className={styles.challengeImage}
                 src="/images/hero-kaka-original.webp"
@@ -128,15 +131,15 @@ export default function HomePage() {
           <h2 id="trial-title" className={styles.sectionTitle}>進來就能免費體驗什麼？</h2>
           <p className={styles.sectionLead}>不用先懂營養，也不用先準備完美菜單。從你的身體與生活開始，7 天把健康減脂變成每天都做得到的小步驟。</p>
           <div className={styles.trialGrid}>
-            <article>
+            <article data-tilt>
               <span>01</span>
               <div><small>第一步</small><h3>建立個人目標</h3><p>依身高、體重、活動量計算 BMI、BMR、TDEE，以及合理的熱量與蛋白質方向。</p></div>
             </article>
-            <article>
+            <article data-tilt>
               <span>02</span>
               <div><small>每一餐</small><h3>拍照看懂每一餐</h3><p>傳餐點照片，先看熱量、蛋白質、碳水與脂肪估算，確認後才寫入紀錄。</p></div>
             </article>
-            <article>
+            <article data-tilt>
               <span>03</span>
               <div><small>每一天</small><h3>每天知道下一步</h3><p>看到今天還能吃多少、還差多少蛋白質，以及下一餐最值得調整的一件事。</p></div>
             </article>
@@ -217,6 +220,7 @@ export default function HomePage() {
           </nav>
         </div>
       </footer>
+      <KakaChatbot lineUrl={lineUrl} />
     </div>
   );
 }

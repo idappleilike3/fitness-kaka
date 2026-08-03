@@ -9,6 +9,9 @@ const menu = readFileSync(resolve(root, "SevenDayMenu.tsx"), "utf8");
 const visualStoriesPath = resolve(root, "HomeVisualStories.tsx");
 const visualStories = readFileSync(visualStoriesPath, "utf8");
 const interactiveStories = readFileSync(resolve(root, "InteractiveStoryGalleries.tsx"), "utf8");
+const mealScenarios = readFileSync(resolve(root, "MealScenarioSwitcher.tsx"), "utf8");
+const chatbot = readFileSync(resolve(root, "KakaChatbot.tsx"), "utf8");
+const pointerEffects = readFileSync(resolve(root, "PointerEffects.tsx"), "utf8");
 
 describe("homepage commercial content", () => {
   it("does not publish beta labels", () => {
@@ -115,8 +118,30 @@ describe("homepage commercial content", () => {
 
   it("offers realistic meal substitutions instead of a rigid menu", () => {
     expect(page).toContain("<MealFlexStory");
+    expect(visualStories).toContain("<MealScenarioSwitcher");
     for (const text of ["外食版", "超商版", "居家版", "素食替換", "一掌心蛋白質", "聚餐"]) {
-      expect(visualStories).toContain(text);
+      expect(`${visualStories}\n${mealScenarios}`).toContain(text);
+    }
+  });
+
+  it("mounts the free local Kaka chatbot with sound controls and LINE fallback", () => {
+    expect(page).toContain("<KakaChatbot");
+    expect(chatbot).toContain("免費規則回答・不使用付費 AI");
+    expect(chatbot).toContain("開啟卡卡提示音");
+    expect(chatbot).toContain("到 LINE 找卡卡真人聊聊");
+    expect(chatbot).not.toContain("fetch(");
+  });
+
+  it("mounts pointer effects with touch and reduced-motion guards", () => {
+    expect(page).toContain("<PointerEffects");
+    expect(pointerEffects).toContain("(hover: hover) and (pointer: fine)");
+    expect(pointerEffects).toContain("prefers-reduced-motion: reduce");
+    expect(pointerEffects).toContain("requestAnimationFrame");
+  });
+
+  it("pairs all four key feature stories with existing real imagery", () => {
+    for (const image of ["story-photo-analysis.webp", "menu-day-2.webp", "menu-day-3.webp", "story-coach-support.webp"]) {
+      expect(visualStories).toContain(`/images/${image}`);
     }
   });
 
