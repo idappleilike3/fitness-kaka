@@ -5,6 +5,7 @@ import {
   parseLooseNumber,
   parseOnboardingPostback,
   shouldBypassOnboarding,
+  startOnboardingPrompt,
 } from "@/services/onboarding";
 
 describe("onboarding numeric parsing", () => {
@@ -31,6 +32,26 @@ describe("onboarding postback", () => {
       value: "3",
     });
     expect(parseOnboardingPostback("meal:confirm:x")).toBeNull();
+  });
+});
+
+describe("new member questionnaire", () => {
+  it("starts by asking the member's main goal with four tappable answers", () => {
+    const result = startOnboardingPrompt();
+
+    expect(result.reply).toContain("你現在最想改善什麼");
+    expect(result.quickReply?.items.map((item) => item.action.label)).toEqual([
+      "減脂瘦身",
+      "控制飲食",
+      "增肌塑形",
+      "改善健康",
+    ]);
+    expect(result.quickReply?.items.map((item) => item.action.data)).toEqual([
+      "onboarding:goal:cut",
+      "onboarding:goal:diet",
+      "onboarding:goal:bulk",
+      "onboarding:goal:health",
+    ]);
   });
 });
 

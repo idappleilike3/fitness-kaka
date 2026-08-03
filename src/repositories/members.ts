@@ -38,7 +38,7 @@ export async function upsertMemberByLineUserId(
     .insert({
       line_user_id: lineUserId,
       display_name: displayName ?? null,
-      onboarding_step: "sex",
+      onboarding_step: "goal",
     })
     .select("id, line_user_id, display_name, status, onboarding_step")
     .single();

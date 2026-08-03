@@ -1,6 +1,6 @@
 # LINE 官方帳號歡迎訊息（手動貼上用）
 
-以下文案與 webhook `follow`／歡迎訊息一致。可貼到 LINE Official Account Manager → 回應設定 → 加入好友回覆。
+Webhook `follow` 會先送歡迎圖文卡，再自動送出「1 分鐘了解你」與四選一目標問卷。可在 LINE Official Account Manager 保留相同品牌視覺，但不要另外開啟重複的加入好友回覆。
 
 ## 重要提醒
 

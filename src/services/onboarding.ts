@@ -30,15 +30,22 @@ const ACTIVITY_MAP: Record<string, string> = {
 
 const GOAL_MAP: Record<string, string> = {
   減脂: "cut",
+  減脂瘦身: "cut",
+  控制飲食: "cut",
   增肌: "bulk",
+  增肌塑形: "bulk",
+  改善健康: "maintain",
   維持: "maintain",
   維持體重: "maintain",
   cut: "cut",
+  diet: "cut",
   bulk: "bulk",
+  health: "maintain",
   maintain: "maintain",
 };
 
 const STEPS = [
+  "goal",
   "sex",
   "age",
   "height",
@@ -46,7 +53,6 @@ const STEPS = [
   "target_weight",
   "activity",
   "freq",
-  "goal",
 ] as const;
 
 export type OnboardingQuickReply = ReturnType<
@@ -149,7 +155,7 @@ export function promptFor(step: string): string {
     case "freq":
       return "請點選每週健身次數（或輸入 0～7）";
     case "goal":
-      return "請點選目標（或輸入：減脂／增肌／維持）";
+      return "你現在最想改善什麼？請點選一個最接近你的目標";
     default:
       return "請繼續完成建檔";
   }
@@ -212,11 +218,15 @@ export async function handleOnboarding(
   text: string,
   stepHint?: string,
 ): Promise<OnboardingResult> {
-  const step = stepHint ?? member.onboarding_step ?? "sex";
+  const step = stepHint ?? member.onboarding_step ?? "goal";
   const raw = text.trim();
 
   try {
-    if (step === "sex") {
+    if (step === "goal") {
+      const goal = resolveGoal(raw);
+      if (!goal) return withPrompt("goal");
+      await patchProfile(member.id, { goal_type: goal });
+    } else if (step === "sex") {
       const sex = resolveSex(raw);
       if (!sex) return withPrompt("sex");
       await patchProfile(member.id, { sex });
@@ -274,10 +284,6 @@ export async function handleOnboarding(
         return withPrompt("freq");
       }
       await patchProfile(member.id, { workout_frequency: freq });
-    } else if (step === "goal") {
-      const goal = resolveGoal(raw);
-      if (!goal) return withPrompt("goal");
-      await patchProfile(member.id, { goal_type: goal });
       const done = await completeProfileIfReady(member.id);
       await setOnboardingStep(member.id, null);
       return {
@@ -285,7 +291,7 @@ export async function handleOnboarding(
         stillOnboarding: false,
       };
     } else {
-      return withPrompt("sex");
+      return withPrompt("goal");
     }
   } catch {
     return {
@@ -321,9 +327,9 @@ export function parseOnboardingPostback(
 }
 
 export function startOnboardingPrompt(): OnboardingResult {
-  return withPrompt("sex");
+  return withPrompt("goal");
 }
 
 export function continueOnboardingPrompt(step: string | null): OnboardingResult {
-  return withPrompt(step ?? "sex");
+  return withPrompt(step ?? "goal");
 }

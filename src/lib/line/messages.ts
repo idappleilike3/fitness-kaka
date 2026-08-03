@@ -289,9 +289,10 @@ export function onboardingFreqQuickReply() {
 export function onboardingGoalQuickReply() {
   return {
     items: [
-      postbackItem("減脂", "onboarding:goal:cut"),
-      postbackItem("增肌", "onboarding:goal:bulk"),
-      postbackItem("維持", "onboarding:goal:maintain"),
+      postbackItem("減脂瘦身", "onboarding:goal:cut"),
+      postbackItem("控制飲食", "onboarding:goal:diet"),
+      postbackItem("增肌塑形", "onboarding:goal:bulk"),
+      postbackItem("改善健康", "onboarding:goal:health"),
     ],
   };
 }

@@ -13,6 +13,7 @@ import {
   videoNotSupportedMessage,
   welcomeMessage,
 } from "@/lib/line/messages";
+import { welcomeFlexMessage } from "@/lib/line/welcome-flex";
 import {
   classifyTextIntent,
   isEmojiOnlyMessage,
@@ -324,7 +325,7 @@ async function routeUnlockedText(
   }
 
   if (/^(?:開始建檔|重新建檔|建檔)$/u.test(trimmed)) {
-    await setOnboardingStep(member.id, "sex");
+    await setOnboardingStep(member.id, "goal");
     await replyOnboarding(replyToken, startOnboardingPrompt());
     return;
   }
@@ -459,10 +460,17 @@ export async function routeEvent(event: LineEvent): Promise<void> {
         return;
       }
       const cont = continueOnboardingPrompt(member.onboarding_step);
-      await replyOnboarding(replyToken, {
-        ...cont,
-        reply: `${welcomeMessage()}\n\n${cont.reply}`,
-      });
+      await replyMessage(replyToken, [
+        welcomeFlexMessage(),
+        {
+          type: "text",
+          text: [
+            "嗨，我是卡卡 💜 在開始陪伴你之前，想先花 1 分鐘了解你的目標，完成後我會提供專屬熱量、蛋白質與減脂方向。",
+            cont.reply,
+          ].join("\n\n"),
+          ...(cont.quickReply ? { quickReply: cont.quickReply } : {}),
+        },
+      ]);
       return;
     }
 
@@ -483,7 +491,7 @@ export async function routeEvent(event: LineEvent): Promise<void> {
       const ob = parseOnboardingPostback(data);
       if (ob) {
         // Ignore stale buttons if user already moved past that step
-        const current = member.onboarding_step ?? "sex";
+        const current = member.onboarding_step ?? "goal";
         if (member.onboarding_step === null) {
           await replyText(replyToken, "建檔已完成，可直接傳食物照片或打字紀錄");
           return;

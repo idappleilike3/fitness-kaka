@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getAdminDb: vi.fn(),
   getProfile: vi.fn(),
   handleOnboarding: vi.fn(),
+  replyMessage: vi.fn(),
   replyText: vi.fn(),
   resolveCurrentPlan: vi.fn(),
   setOnboardingStep: vi.fn(),
@@ -21,18 +22,22 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/line/client", () => ({
   downloadContent: vi.fn(),
   getLineProfile: mocks.getLineProfile,
-  replyMessage: vi.fn(),
+  replyMessage: mocks.replyMessage,
   replyText: mocks.replyText,
 }));
-vi.mock("@/lib/line/messages", () => ({
-  audioTooLongMessage: vi.fn(),
-  goalsSummaryMessage: vi.fn(),
-  helpMessage: vi.fn(() => "help"),
-  mealLogTipMessage: vi.fn(),
-  upgradePlansMessage: vi.fn(() => "upgrade"),
-  videoNotSupportedMessage: vi.fn(),
-  welcomeMessage: vi.fn(() => "welcome"),
-}));
+vi.mock("@/lib/line/messages", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/line/messages")>();
+  return {
+    ...actual,
+    audioTooLongMessage: vi.fn(),
+    goalsSummaryMessage: vi.fn(),
+    helpMessage: vi.fn(() => "help"),
+    mealLogTipMessage: vi.fn(),
+    upgradePlansMessage: vi.fn(() => "upgrade"),
+    videoNotSupportedMessage: vi.fn(),
+    welcomeMessage: vi.fn(() => "welcome"),
+  };
+});
 vi.mock("@/lib/audio/duration", () => ({
   isAudioTooLong: vi.fn(),
   MAX_AUDIO_SECONDS: 60,
@@ -53,7 +58,7 @@ vi.mock("@/lib/service-unavailable", () => ({
 }));
 vi.mock("@/repositories/logs", () => ({
   ensureEventOnce: mocks.ensureEventOnce,
-  logSystem: vi.fn(),
+  logSystem: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/repositories/members", () => ({
   setOnboardingStep: mocks.setOnboardingStep,
@@ -259,6 +264,38 @@ describe("LINE onboarding recovery", () => {
     expect(mocks.replyText).toHaveBeenCalledWith(
       "reply",
       expect.not.stringMatching(/請點選性別|請輸入身高/),
+    );
+  });
+
+  it("automatically starts the goal questionnaire after welcoming a new follower", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: "goal",
+    });
+
+    await routeEvent({
+      type: "follow",
+      replyToken: "reply",
+      webhookEventId: "event-new-follow",
+      source: { userId: "U123" },
+    });
+
+    expect(mocks.replyMessage).toHaveBeenCalledWith("reply", [
+      expect.objectContaining({
+        type: "flex",
+        altText: expect.stringContaining("歡迎加入健身卡卡"),
+      }),
+      expect.objectContaining({
+        type: "text",
+        text: expect.stringContaining("1 分鐘了解你的目標"),
+        quickReply: expect.objectContaining({ items: expect.any(Array) }),
+      }),
+    ]);
+    expect(mocks.replyMessage.mock.calls[0][1][1].text).toContain(
+      "你現在最想改善什麼",
     );
   });
 
