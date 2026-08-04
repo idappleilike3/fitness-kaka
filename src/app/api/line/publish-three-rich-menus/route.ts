@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const LINE_API = "https://api.line.me/v2/bot";
 const BASE = process.env.PUBLIC_BASE_URL?.trim() || "https://fitness-kaka.vercel.app";
 const LIFF = "https://liff.line.me/2010804832-oPIqeXjJ";
+const ONE_TIME_KEY = "kaka-three-menu-20260804-1206";
 
 const definitions = [
   {
@@ -80,9 +81,7 @@ async function lineRequest(path: string, init: RequestInit) {
       ...(init.headers || {}),
     },
   });
-  if (!response.ok) {
-    throw new Error(`${path} failed: ${response.status} ${await response.text()}`);
-  }
+  if (!response.ok) throw new Error(`${path} failed: ${response.status} ${await response.text()}`);
   return response;
 }
 
@@ -93,44 +92,30 @@ async function publish(definition: (typeof definitions)[number]) {
     body: JSON.stringify(menuBody(definition.name, definition.actions)),
   });
   const { richMenuId } = (await create.json()) as { richMenuId: string };
-
   const source = await fetch(definition.image, { cache: "no-store" });
   if (!source.ok) throw new Error(`image fetch failed: ${source.status} ${definition.image}`);
   const image = await sharp(Buffer.from(await source.arrayBuffer()))
     .resize(2500, 1686, { fit: "fill" })
     .jpeg({ quality: 82, mozjpeg: true, chromaSubsampling: "4:2:0" })
     .toBuffer();
-
   await lineRequest(`/richmenu/${encodeURIComponent(richMenuId)}/content`, {
     method: "POST",
     headers: { "Content-Type": "image/jpeg" },
     body: new Uint8Array(image),
   });
-
   return { key: definition.key, richMenuId, bytes: image.byteLength, actions: definition.actions };
 }
 
 export async function GET(request: Request) {
-  const expected = process.env.CRON_SECRET?.trim();
   const supplied = new URL(request.url).searchParams.get("key")?.trim();
-  if (!expected || supplied !== expected) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
+  if (supplied !== ONE_TIME_KEY) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   try {
     const results = [];
     for (const definition of definitions) results.push(await publish(definition));
-
     const visitor = results.find((item) => item.key === "visitor");
-    if (visitor) {
-      await lineRequest(`/user/all/richmenu/${encodeURIComponent(visitor.richMenuId)}`, { method: "POST" });
-    }
-
+    if (visitor) await lineRequest(`/user/all/richmenu/${encodeURIComponent(visitor.richMenuId)}`, { method: "POST" });
     return NextResponse.json({ ok: true, results });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
