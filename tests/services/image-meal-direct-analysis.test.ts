@@ -85,4 +85,27 @@ describe("food photo replies", () => {
     }]);
     expect(mocks.tryConsume).not.toHaveBeenCalled();
   });
+
+  it("asks the member to retry instead of guessing when image understanding fails", async () => {
+    mocks.understandImage.mockRejectedValue(new Error("OpenAI unavailable"));
+
+    await expect(
+      handleImageMeal(
+        "reply-token",
+        "member-1",
+        Buffer.from("unreadable"),
+        "image/jpeg",
+        "U123",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(mocks.replyMessage).toHaveBeenCalledWith("reply-token", [
+      {
+        type: "text",
+        text: "我目前無法確認圖片內容。\n請重新拍攝，或直接描述餐點。",
+      },
+    ]);
+    expect(mocks.createPending).not.toHaveBeenCalled();
+    expect(mocks.tryConsume).not.toHaveBeenCalled();
+  });
 });

@@ -327,7 +327,7 @@ describe("handleImageMeal analysis progress", () => {
     expect(mocks.createPending).not.toHaveBeenCalled();
   });
 
-  it("talks about a food photo before returning its nutrition preview", async () => {
+  it("returns a food photo nutrition preview without conversational preface", async () => {
     mocks.understandImage.mockResolvedValue({
       kind: "food",
       reply: "看起來是很豐富的雞胸餐盒，蔬菜和主食都有照顧到，我先幫你估算看看。",
@@ -356,12 +356,11 @@ describe("handleImageMeal analysis progress", () => {
 
     expect(mocks.tryConsume).toHaveBeenCalledWith("member-1", "image");
     expect(mocks.createPending).toHaveBeenCalledTimes(1);
-    expect(mocks.replyMessage).toHaveBeenNthCalledWith(1, "reply-token", [
-      {
-        type: "text",
-        text: "看起來是很豐富的雞胸餐盒，蔬菜和主食都有照顧到，我先幫你估算看看。",
-      },
-    ]);
+    expect(mocks.replyMessage).toHaveBeenCalledTimes(1);
+    expect(mocks.replyMessage.mock.calls[0][1][0].text).toContain("雞胸餐");
+    expect(mocks.replyMessage.mock.calls[0][1][0].text).not.toContain(
+      "我先幫你估算",
+    );
   });
 
   it("starts the LINE loading animation while analyzing a photo", async () => {
@@ -413,8 +412,15 @@ describe("handleImageMeal analysis failure", () => {
         Buffer.from("image"),
         "image/jpeg",
       ),
-    ).rejects.toThrow("OpenAI timeout");
+    ).resolves.toBeUndefined();
 
     expect(mocks.refundConsumed).not.toHaveBeenCalled();
+    expect(mocks.tryConsume).not.toHaveBeenCalled();
+    expect(mocks.replyMessage).toHaveBeenCalledWith("reply-token", [
+      {
+        type: "text",
+        text: "我目前無法確認圖片內容。\n請重新拍攝，或直接描述餐點。",
+      },
+    ]);
   });
 });

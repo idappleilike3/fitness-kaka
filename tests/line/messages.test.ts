@@ -42,6 +42,8 @@ describe("meal preview messages", () => {
       carbG: 42,
       fatG: 18,
       todayKcal: 0,
+      projectedKcal: 420,
+      projectedProteinG: 22,
       remainingKcal: 1800,
       proteinLeft: 100,
     });
@@ -143,6 +145,8 @@ describe("LINE chat copy", () => {
         carbG: 42,
         fatG: 18,
         todayKcal: 0,
+        projectedKcal: 420,
+        projectedProteinG: 22,
         remainingKcal: 1800,
         proteinLeft: 100,
       }),

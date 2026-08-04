@@ -215,7 +215,19 @@ export async function handleImageMeal(
   }
 
   const imageHash = crypto.createHash("sha256").update(buffer).digest("hex");
-  const result = await understandImage(buffer, mime);
+  let result: Awaited<ReturnType<typeof understandImage>>;
+  try {
+    result = await understandImage(buffer, mime);
+  } catch (err) {
+    console.error("[meal-flow] image understanding failed", err);
+    await replyMessage(replyToken, [
+      {
+        type: "text",
+        text: "我目前無法確認圖片內容。\n請重新拍攝，或直接描述餐點。",
+      },
+    ]);
+    return;
+  }
   const { usage, model } = result;
   await logApiUsage({
     memberId,
@@ -248,7 +260,6 @@ export async function handleImageMeal(
       analysis: result.meal,
       imageHash,
     });
-    await replyMessage(replyToken, [{ type: "text", text: result.reply }]);
     await replyMealPreview(replyToken, memberId, result.meal, pendingId);
   } catch (err) {
     await refundConsumed(memberId, "image").catch((refundErr) => {
