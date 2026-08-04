@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
+import flipStyles from "./story-flip.module.css";
 
 type Story = {
   key: string;
@@ -20,7 +21,14 @@ function StorySwitcher({
   ariaLabel: string;
 }) {
   const [active, setActive] = useState(0);
+  const [flipped, setFlipped] = useState(false);
   const story = stories[active];
+
+  useEffect(() => {
+    setFlipped(false);
+  }, [active]);
+
+  const toggleFlip = () => setFlipped((value) => !value);
 
   return (
     <div className={styles.storySwitcher}>
@@ -38,20 +46,50 @@ function StorySwitcher({
           </button>
         ))}
       </div>
-      <article className={styles.storySwitchCard} role="tabpanel">
-        <div className={styles.storySwitchImage}>
-          <Image
-            src={story.image}
-            alt={story.title}
-            fill
-            sizes="(max-width: 860px) 100vw, 60vw"
-            priority={active === 0}
-          />
-        </div>
+
+      <article className={`${styles.storySwitchCard} ${flipStyles.flipShell}`} role="tabpanel">
+        <button
+          type="button"
+          className={flipStyles.flipButton}
+          aria-label={flipped ? `返回 ${story.label} 照片正面` : `查看 ${story.label} 內容背面`}
+          aria-pressed={flipped}
+          onClick={toggleFlip}
+        >
+          <span className={`${flipStyles.flipCard} ${flipped ? flipStyles.isFlipped : ""}`}>
+            <span className={`${flipStyles.face} ${flipStyles.front}`} aria-hidden={flipped}>
+              <span className={flipStyles.photoFrame}>
+                <Image
+                  src={story.image}
+                  alt={story.title}
+                  fill
+                  sizes="(max-width: 860px) 92vw, 60vw"
+                  priority={active === 0}
+                />
+              </span>
+              <span className={flipStyles.frontCaption}>
+                <small>{story.label}</small>
+                <strong>{story.title}</strong>
+                <em>點一下翻到背面</em>
+              </span>
+            </span>
+
+            <span className={`${flipStyles.face} ${flipStyles.back}`} aria-hidden={!flipped}>
+              <span className={flipStyles.backGlow} aria-hidden />
+              <small>{story.label}</small>
+              <strong>{story.title}</strong>
+              <span>{story.copy}</span>
+              <em>點一下返回照片</em>
+            </span>
+          </span>
+        </button>
+
         <div className={styles.storySwitchCopy}>
           <span>{story.label}</span>
           <h3>{story.title}</h3>
           <p>{story.copy}</p>
+          <button type="button" className={flipStyles.textToggle} onClick={toggleFlip}>
+            {flipped ? "查看照片正面" : "翻到內容背面"}
+          </button>
         </div>
       </article>
     </div>
