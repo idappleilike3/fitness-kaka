@@ -6,6 +6,7 @@ import {
   maskLineUserId,
   validateGrantPlanId,
 } from "@/lib/admin/grant-plan";
+import { syncMemberRichMenu } from "@/lib/line/rich-menu-plan";
 import { getAdminDb } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -22,8 +23,7 @@ export async function POST(req: NextRequest) {
     memberId?: unknown;
     planId?: unknown;
   } | null;
-  const memberId =
-    typeof body?.memberId === "string" ? body.memberId.trim() : "";
+  const memberId = typeof body?.memberId === "string" ? body.memberId.trim() : "";
   const planId = validateGrantPlanId(body?.planId);
   if (!memberId || !planId) {
     return NextResponse.json({ error: "會員或方案無效" }, { status: 400 });
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         .eq("id", planId)
         .maybeSingle(),
     ]);
+
   if (memberError || !member) {
     return NextResponse.json({ error: "找不到會員" }, { status: 404 });
   }
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
     .order("expires_at", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle();
+
   if (existingError) {
     return NextResponse.json({ error: "讀取既有方案失敗" }, { status: 500 });
   }
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest) {
     existing?.expires_at,
     plan.duration_days,
   ).toISOString();
+
   const { error: writeError } = await db.from("subscriptions").insert({
     member_id: member.id,
     plan_id: planId,
@@ -80,12 +83,14 @@ export async function POST(req: NextRequest) {
   if (writeError) {
     return NextResponse.json({ error: "開通方案失敗" }, { status: 500 });
   }
+
   await db.from("admin_operation_logs").insert({
     member_id: member.id,
     operation: "grant_plan",
     plan_id: planId,
     metadata: { grantedAt: grantedAt.toISOString(), expiresAt },
   });
+
   if (existing) {
     const { error: supersedeError } = await db
       .from("subscriptions")
@@ -96,6 +101,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  let richMenu: { synced: boolean; tier: "free" | "plus" | "pro"; reason?: string };
+  try {
+    richMenu = await syncMemberRichMenu(member.line_user_id, planId);
+  } catch (error) {
+    richMenu = {
+      synced: false,
+      tier: planId === "plan_799" || planId === "plan_7190" ? "pro" : "plus",
+      reason: error instanceof Error ? error.message : "LINE 圖文選單同步失敗",
+    };
+  }
+
+  await db.from("admin_operation_logs").insert({
+    member_id: member.id,
+    operation: "sync_rich_menu",
+    plan_id: planId,
+    metadata: richMenu,
+  });
+
   return NextResponse.json({
     member: {
       displayName: member.display_name ?? "未設定名稱",
@@ -104,5 +127,6 @@ export async function POST(req: NextRequest) {
     planId,
     grantedAt: grantedAt.toISOString(),
     expiresAt,
+    richMenu,
   });
 }
