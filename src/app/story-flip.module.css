@@ -1,0 +1,160 @@
+.flipShell {
+  align-items: stretch;
+}
+
+.flipButton {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  perspective: 1200px;
+}
+
+.flipCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: clamp(24rem, 48vw, 34rem);
+  transform-style: preserve-3d;
+  transition: transform .72s cubic-bezier(.2,.72,.2,1);
+}
+
+.isFlipped {
+  transform: rotateY(180deg);
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow: hidden;
+  border-radius: 1.55rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 1.6rem 4rem rgba(8, 2, 15, .34);
+}
+
+.front {
+  background: #160b21;
+}
+
+.photoFrame {
+  position: absolute;
+  inset: 0;
+}
+
+.photoFrame img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.front::after {
+  content: "";
+  position: absolute;
+  inset: 38% 0 0;
+  background: linear-gradient(transparent, rgba(12, 4, 19, .94));
+}
+
+.frontCaption {
+  position: relative;
+  z-index: 2;
+  align-self: flex-end;
+  width: 100%;
+  display: grid;
+  gap: .35rem;
+  padding: clamp(1.1rem, 3vw, 1.8rem);
+  text-align: left;
+}
+
+.frontCaption small,
+.back small {
+  color: #ffc4e0;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.frontCaption strong,
+.back strong {
+  color: #fff;
+  font-size: clamp(1.35rem, 3vw, 2.15rem);
+  line-height: 1.15;
+}
+
+.frontCaption em,
+.back em {
+  color: rgba(255,255,255,.68);
+  font-style: normal;
+  font-size: .85rem;
+}
+
+.back {
+  transform: rotateY(180deg);
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  text-align: left;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 92, 168, .3), transparent 34%),
+    radial-gradient(circle at 82% 75%, rgba(156, 108, 255, .28), transparent 36%),
+    linear-gradient(145deg, #23102f, #12081b);
+  border: 1px solid rgba(255, 196, 224, .22);
+}
+
+.back > span:not(.backGlow) {
+  max-width: 34rem;
+  color: rgba(255, 249, 253, .84);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.8;
+}
+
+.backGlow {
+  position: absolute;
+  inset: auto -18% -28% auto;
+  width: 18rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 92, 168, .16);
+  filter: blur(38px);
+}
+
+.textToggle {
+  margin-top: .75rem;
+  padding: .7rem 1rem;
+  border: 1px solid rgba(255, 196, 224, .34);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255,255,255,.05);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.textToggle:hover {
+  border-color: rgba(255, 196, 224, .7);
+  background: rgba(255, 92, 168, .12);
+}
+
+@media (max-width: 760px) {
+  .flipCard {
+    min-height: 27rem;
+  }
+
+  .face {
+    border-radius: 1.15rem;
+  }
+
+  .photoFrame img {
+    object-position: center top;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flipCard {
+    transition: none;
+  }
+}
