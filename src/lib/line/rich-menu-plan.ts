@@ -5,7 +5,7 @@ const LINE_API = "https://api.line.me/v2/bot";
 export type RichMenuTier = "free" | "plus" | "pro";
 
 const PUBLISHED_RICH_MENUS: Record<RichMenuTier, string> = {
-  free: "richmenu-d3f2f494a9aae57b3b57c2ef0a330273",
+  free: "richmenu-ded27e11beaf5aeef2c182741f966ba0",
   plus: "richmenu-748940b0a1fdec3a7e72e07f8251d859",
   pro: "richmenu-f6be638efb85c4678221f8eb2affbb0d",
 };
