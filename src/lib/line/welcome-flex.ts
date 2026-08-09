@@ -1,7 +1,7 @@
 export function welcomeFlexMessage() {
   return {
     type: "flex",
-    altText: "歡迎加入健身卡卡教練｜開始 30 天減脂挑戰",
+    altText: "歡迎加入健身卡卡教練｜先選你想怎麼開始",
     contents: {
       type: "bubble",
       size: "mega",
@@ -11,10 +11,6 @@ export function welcomeFlexMessage() {
         size: "full",
         aspectRatio: "2:3",
         aspectMode: "fit",
-        action: {
-          type: "uri",
-          uri: "https://liff.line.me/2010804832-oPIqeXjJ",
-        },
       },
       footer: {
         type: "box",
@@ -28,9 +24,10 @@ export function welcomeFlexMessage() {
             color: "#7141CA",
             height: "sm",
             action: {
-              type: "uri",
+              type: "postback",
               label: "免費開始",
-              uri: "https://liff.line.me/2010804832-oPIqeXjJ",
+              data: "trial:ask",
+              displayText: "我想免費開始",
             },
           },
           {
@@ -48,9 +45,10 @@ export function welcomeFlexMessage() {
             style: "secondary",
             height: "sm",
             action: {
-              type: "message",
+              type: "postback",
               label: "如何開始",
-              text: "怎麼用",
+              data: "guide:how",
+              displayText: "我想先看如何開始",
             },
           },
         ],
