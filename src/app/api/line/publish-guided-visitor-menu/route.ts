@@ -10,7 +10,7 @@ const LINE_DATA_API = "https://api-data.line.me/v2/bot";
 const BASE = process.env.PUBLIC_BASE_URL?.trim() || "https://fitness-kaka.vercel.app";
 const ONE_TIME_KEY = "guided-visitor-menu-20260809";
 
-async function request(base: string, path: string, init: RequestInit) {
+async function lineRequest(base: string, path: string, init: RequestInit) {
   const { LINE_CHANNEL_ACCESS_TOKEN } = getLineEnv();
   const response = await fetch(`${base}${path}`, {
     ...init,
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const create = await request(LINE_API, "/richmenu", {
+    const create = await lineRequest(LINE_API, "/richmenu", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(menuBody()),
@@ -76,13 +76,13 @@ export async function GET(request: Request) {
       .jpeg({ quality: 84, mozjpeg: true, chromaSubsampling: "4:2:0" })
       .toBuffer();
 
-    await request(LINE_DATA_API, `/richmenu/${encodeURIComponent(richMenuId)}/content`, {
+    await lineRequest(LINE_DATA_API, `/richmenu/${encodeURIComponent(richMenuId)}/content`, {
       method: "POST",
       headers: { "Content-Type": "image/jpeg" },
       body: new Uint8Array(image),
     });
 
-    await request(LINE_API, `/user/all/richmenu/${encodeURIComponent(richMenuId)}`, {
+    await lineRequest(LINE_API, `/user/all/richmenu/${encodeURIComponent(richMenuId)}`, {
       method: "POST",
     });
 
