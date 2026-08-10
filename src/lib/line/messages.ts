@@ -3,6 +3,28 @@ import type { QuotaLimits } from "@/lib/quota/daily";
 export const DISCLAIMER =
   "⚠️ AI 推估可能有誤差，結果非醫療診斷";
 
+export function consultationStartMessage(): string {
+  return [
+    "你好～我是卡卡健身減脂營養教練 💜",
+    "你今天想問什麼？可以直接告訴我，也可以選擇下面的數字👇",
+    "",
+    "① 設定減脂目標｜告訴我你的目標，我幫你算每天適合吃多少",
+    "② 拍照分析飲食｜吃東西直接把照片傳給我",
+    "③ 看營養分析｜幫你分析熱量、蛋白質、碳水和脂肪",
+    "④ 記錄今天飲食｜你確認內容後，我才幫你存進今天的記錄",
+    "⑤ 今天還能吃多少｜直接幫你看今天剩餘熱量和蛋白質",
+    "",
+    "那我們現在開始，你目前最想改善什麼？",
+    "",
+    "① 減脂、瘦下來",
+    "② 改善飲食習慣",
+    "③ 增肌、提高蛋白質",
+    "④ 不知道自己一天該吃多少",
+    "⑤ 常常外食，不知道怎麼選",
+    "⑥ 其他，直接告訴卡卡",
+  ].join("\n");
+}
+
 /** Shared plan display names (monthly + yearly share the same tier). */
 export function planDisplayName(planId: string): string {
   if (planId === "plan_799" || planId === "plan_7190") return "卡卡 Pro 教練";
