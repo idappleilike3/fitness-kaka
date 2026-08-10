@@ -18,9 +18,10 @@ describe("LINE follow welcome Flex", () => {
       expect.objectContaining({
         type: "button",
         action: {
-          type: "uri",
+          type: "postback",
           label: "免費開始",
-          uri: "https://liff.line.me/2010804832-oPIqeXjJ",
+          data: "trial:ask",
+          displayText: "我想免費開始",
         },
       }),
       expect.objectContaining({
@@ -34,9 +35,10 @@ describe("LINE follow welcome Flex", () => {
       expect.objectContaining({
         type: "button",
         action: {
-          type: "message",
+          type: "postback",
           label: "如何開始",
-          text: "怎麼用",
+          data: "guide:how",
+          displayText: "我想先看如何開始",
         },
       }),
     ]);
