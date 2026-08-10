@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { HomePlansSection } from "./HomePlansSection";
 import {
@@ -17,6 +16,7 @@ import { SevenDayMenu } from "./SevenDayMenu";
 import { resolveSupportEmail } from "@/lib/support-email";
 import { KakaChatbot } from "./KakaChatbot";
 import { PointerEffects } from "./PointerEffects";
+import { HeroPhotoFlip } from "./HeroPhotoFlip";
 import styles from "./page.module.css";
 
 const LINE_OA_FALLBACK = "https://lin.ee/5rxQDpa";
@@ -70,7 +70,7 @@ export default function HomePage() {
             <p className={styles.support}>拍下每一餐，卡卡陪你完成 30 天減脂挑戰</p>
             <div className={styles.ctaGroup}>
               <a className={styles.ctaPrimary} href={lineUrl} rel="noopener noreferrer" target="_blank">
-                立即免費開始挑戰
+                開始 7 天免費體驗
               </a>
               <Link className={styles.ctaSecondary} href="/member-login">已是會員？登入</Link>
             </div>
@@ -85,18 +85,11 @@ export default function HomePage() {
             </ul>
           </div>
 
-          <div className={styles.heroVisual}>
+          <div className={styles.heroVisual} id="trial">
             <div className={styles.visualFrame} data-tilt data-tilt-preserve-image>
-              <Image
-                className={styles.challengeImage}
-                src="/images/hero-kaka-original.webp"
-                alt="卡卡健身教練與 30 天減脂挑戰功能總覽"
-                width={1086}
-                height={1448}
-                priority
-                sizes="(max-width: 899px) 92vw, 46vw"
-              />
+              <HeroPhotoFlip />
             </div>
+            <span className={styles.srOnly}>建立個人目標、拍照看懂每一餐、每天知道下一步</span>
             <p className={styles.visualCaption}>DAY BY DAY · 讓改變看得見</p>
           </div>
         </div>
@@ -158,6 +151,7 @@ export default function HomePage() {
             <Link href="/privacy">隱私權政策</Link>
             <Link href="/terms">服務條款</Link>
             <Link href="/refund">退款政策</Link>
+            <Link href="/ai-platform">AI 串接平台說明</Link>
             <span>正式服務</span>
           </nav>
         </div>
