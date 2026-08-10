@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyTextIntent,
+  classifyConsultationNeed,
   isEmojiOnlyMessage,
   isGreetingText,
   isNonMealMessageType,
@@ -21,6 +22,20 @@ import {
 } from "@/lib/line/reply-memory";
 
 describe("LINE text intent", () => {
+  it.each([
+    ["①", "goal"],
+    ["2", "photo"],
+    ["③", "nutrition"],
+    ["4", "record"],
+    ["⑤", "remaining"],
+    ["6", "other"],
+    ["我想瘦 5 公斤", "goal"],
+    ["我每天都外食", "goal"],
+    ["不知道一天能吃多少", "goal"],
+    ["幫我分析這一餐", "nutrition"],
+  ])("classifies consultation choice %s as %s", (text, expected) => {
+    expect(classifyConsultationNeed(text)).toBe(expected);
+  });
   it.each(["在嗎", "嗨", "你好", "謝謝", "你沒有跟前面一起結合計算"])(
     "does not treat conversational text as a meal analysis: %s",
     (text) => {
