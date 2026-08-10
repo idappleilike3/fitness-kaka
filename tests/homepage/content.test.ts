@@ -68,7 +68,8 @@ describe("homepage commercial content", () => {
 
   it("restores the original coach hero and expands the story sections", () => {
     expect(heroFlip).toContain("/images/hero-kaka-original.webp");
-    expect(heroFlip).toContain("/images/hero-kaka-cyberpunk-pink-v2.webp");
+    expect(heroFlip).toContain("/images/hero-kaka-cyberpunk-pink-v4.webp");
+    expect(heroFlip).toContain("challengeImageSafe");
     expect(heroFlip).toContain("heroFlipFront");
     expect(heroFlip).toContain("heroFlipBack");
     expect(heroFlip).toContain("setInterval");

@@ -1081,6 +1081,13 @@
   object-position: center;
 }
 
+.challengeImageSafe {
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: #050817;
+}
+
 .visualCaption {
   margin: 0.75rem 0 0;
   text-align: center;
