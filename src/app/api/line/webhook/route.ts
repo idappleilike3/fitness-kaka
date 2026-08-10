@@ -4,10 +4,9 @@ import { getLineProfile, replyMessage } from "@/lib/line/client";
 import { verifyLineSignature } from "@/lib/line/signature";
 import { welcomeFlexMessage } from "@/lib/line/welcome-flex";
 import {
-  howToUseFlexMessage,
-  officialGuideFlexMessage,
   trialAskFlexMessage,
 } from "@/lib/line/guide-flex";
+import { consultationStartMessage } from "@/lib/line/messages";
 import { setOnboardingStep, upsertMemberByLineUserId } from "@/repositories/members";
 import { startOnboardingPrompt } from "@/services/onboarding";
 import { routeEvent } from "@/services/line-router";
@@ -83,7 +82,7 @@ export async function POST(req: Request) {
       if (event.type === "follow" && event.replyToken) {
         await replyMessage(event.replyToken, [
           welcomeFlexMessage(),
-          officialGuideFlexMessage(),
+          { type: "text", text: consultationStartMessage() },
         ]);
         // Initialize member/profile in the background path without duplicating welcome copy.
         await routeEvent({
@@ -94,7 +93,7 @@ export async function POST(req: Request) {
       }
 
       if (isHowToText(event) && event.replyToken) {
-        await replyMessage(event.replyToken, [howToUseFlexMessage()]);
+        await replyMessage(event.replyToken, [{ type: "text", text: consultationStartMessage() }]);
         continue;
       }
 
@@ -105,7 +104,7 @@ export async function POST(req: Request) {
           continue;
         }
         if (data === "trial:notnow" || data === "guide:how") {
-          await replyMessage(event.replyToken, [howToUseFlexMessage()]);
+          await replyMessage(event.replyToken, [{ type: "text", text: consultationStartMessage() }]);
           continue;
         }
         if (data === "trial:start") {
