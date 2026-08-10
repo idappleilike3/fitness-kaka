@@ -90,6 +90,18 @@
   box-shadow: 0 34px 90px rgba(8, 2, 14, .5), 0 0 72px rgba(165, 120, 255, .18);
   animation: coach-float 6.5s ease-in-out infinite;
 }
+.heroFlipButton { position: relative; display: block; width: 100%; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; perspective: 1400px; }
+.heroFlipCard { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; transform-style: preserve-3d; transition: transform .72s cubic-bezier(.2,.72,.2,1); }
+.heroFlipFace { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.heroFlipFront { transform: rotateY(0deg); }
+.heroFlipBack { transform: rotateY(180deg); }
+.heroFlipActive { transform: rotateY(180deg); }
+.heroFlipHint { position: absolute; z-index: 3; right: .8rem; bottom: .8rem; padding: .45rem .7rem; border: 1px solid rgba(255,255,255,.32); border-radius: 999px; background: rgba(20,8,28,.72); font-size: .75rem; font-weight: 800; backdrop-filter: blur(10px); }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .heroFlipButton:hover .heroFlipCard,
+  .heroFlipButton:focus-visible .heroFlipCard { transform: rotateY(180deg); }
+}
 .heroFloatCard {
   position: absolute;
   z-index: 4;
@@ -197,6 +209,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .visualFrame, .heroFloatCard { animation: none !important; }
+  .heroFlipCard { transition: none; }
 }
 
 /* Interactive real-life meal modes */
