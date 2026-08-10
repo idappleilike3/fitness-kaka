@@ -111,9 +111,10 @@ describe("LINE chat copy", () => {
       mealAnalysis: 5,
     });
 
-    expect(welcome).toContain("嗨，我是卡卡");
-    expect(welcome).toContain("我要參加三十天減脂挑戰");
-    expect(welcome).toContain("怎麼用");
+    expect(welcome).toContain("你好～我是卡卡健身減脂營養教練");
+    expect(welcome).toContain("你目前最想改善什麼");
+    expect(welcome).toContain("⑥ 其他，直接告訴卡卡");
+    expect(welcome).not.toContain("① 設定減脂目標");
     expect(help).toContain("體驗：先從一餐開始");
     expect(help).toContain("記錄：每天留下看得懂的飲食紀錄");
     expect(help).toContain("陪伴：每天知道下一步該做什麼");

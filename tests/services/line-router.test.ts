@@ -34,6 +34,7 @@ vi.mock("@/lib/line/messages", async (importOriginal) => {
     audioTooLongMessage: vi.fn(),
     goalsSummaryMessage: vi.fn(),
     helpMessage: vi.fn(() => "help"),
+    consultationStartMessage: vi.fn(() => "consultation welcome\n你現在最想改善什麼"),
     mealLogTipMessage: vi.fn(),
     upgradePlansMessage: vi.fn(() => "upgrade"),
     videoNotSupportedMessage: vi.fn(),
@@ -261,12 +262,66 @@ describe("LINE onboarding recovery", () => {
     expect(mocks.handleOnboarding).not.toHaveBeenCalled();
     expect(mocks.replyText).toHaveBeenCalledWith(
       "reply",
-      expect.stringContaining("welcome"),
+      expect.stringContaining("consultation welcome"),
     );
     expect(mocks.replyText).toHaveBeenCalledWith(
       "reply",
       expect.not.stringMatching(/請點選性別|請輸入身高/),
     );
+  });
+
+  it("starts a concrete weight-loss follow-up when an unlocked user chooses consultation option 1", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: null,
+    });
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-consultation-1",
+      source: { userId: "U123" },
+      message: { type: "text", text: "1" },
+    });
+
+    expect(mocks.handleCoachChat).not.toHaveBeenCalled();
+    expect(mocks.replyText).toHaveBeenCalledWith(
+      "reply",
+      expect.stringContaining("想減幾公斤"),
+    );
+  });
+
+  it.each([
+    ["②", "最想先改善哪一個飲食習慣"],
+    ["3", "一週運動幾天"],
+    ["④", "身高、體重、年齡"],
+    ["5", "最常吃哪一類外食"],
+    ["⑥", "直接告訴我"],
+  ])("continues consultation option %s without calling general AI chat", async (choice, expected) => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: null,
+    });
+    mocks.answerDailyStatus.mockResolvedValue("今天還沒有已確認的飲食紀錄");
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: `event-consultation-${choice}`,
+      source: { userId: "U123" },
+      message: { type: "text", text: choice },
+    });
+
+    expect(mocks.handleCoachChat).not.toHaveBeenCalled();
+    expect(
+      [...mocks.replyText.mock.calls, ...mocks.replyMessage.mock.calls].flat(3).join(" "),
+    ).toContain(expected);
   });
 
   it("downloads an unlocked LINE image once and routes it through the category-aware image flow", async () => {
@@ -325,17 +380,15 @@ describe("LINE onboarding recovery", () => {
 
     expect(mocks.replyMessage).toHaveBeenCalledWith("reply", [
       expect.objectContaining({
-        type: "flex",
-        altText: expect.stringContaining("歡迎加入健身卡卡"),
-      }),
-      expect.objectContaining({
         type: "text",
-        text: expect.stringContaining("1 分鐘了解你的目標"),
-        quickReply: expect.objectContaining({ items: expect.any(Array) }),
+        text: expect.stringContaining("consultation welcome"),
       }),
     ]);
-    expect(mocks.replyMessage.mock.calls[0][1][1].text).toContain(
+    expect(mocks.replyMessage.mock.calls[0][1][0].text).toContain(
       "你現在最想改善什麼",
+    );
+    expect(mocks.replyMessage.mock.calls[0][1]).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: "flex" })]),
     );
   });
 

@@ -15,9 +15,11 @@ describe("LINE guided onboarding cards", () => {
   it("explains how to start as a direct consultation instead of a tutorial Flex", () => {
     const message = consultationStartMessage();
     expect(message).toContain("我是卡卡健身減脂營養教練");
-    expect(message).toContain("① 設定減脂目標");
+    expect(message).toContain("・設定減脂目標");
     expect(message).toContain("⑥ 其他，直接告訴卡卡");
     expect(message).toContain("你目前最想改善什麼");
+    expect(message).not.toContain("① 設定減脂目標");
+    expect(message).not.toContain("② 拍照分析飲食");
     expect(message).not.toContain("STEP 1");
   });
 

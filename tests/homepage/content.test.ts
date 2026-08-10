@@ -68,9 +68,11 @@ describe("homepage commercial content", () => {
 
   it("restores the original coach hero and expands the story sections", () => {
     expect(heroFlip).toContain("/images/hero-kaka-original.webp");
-    expect(heroFlip).toContain("/images/hero-kaka-premium-meal-v2.webp");
+    expect(heroFlip).toContain("/images/hero-kaka-cyberpunk-pink-v2.webp");
     expect(heroFlip).toContain("heroFlipFront");
     expect(heroFlip).toContain("heroFlipBack");
+    expect(heroFlip).toContain("setInterval");
+    expect(heroFlip).toContain("4000");
     expect(visualStories).toContain("陪你做下一個選擇");
     expect(visualStories).toContain("每一階段都讓你看懂自己");
     expect(visualStories).toContain("把健康進度");

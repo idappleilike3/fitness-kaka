@@ -6,15 +6,15 @@ import {
 } from "@/lib/line/client";
 import {
   audioTooLongMessage,
+  consultationStartMessage,
   goalsSummaryMessage,
   helpMessage,
   mealLogTipMessage,
   upgradePlansMessage,
   videoNotSupportedMessage,
-  welcomeMessage,
 } from "@/lib/line/messages";
-import { welcomeFlexMessage } from "@/lib/line/welcome-flex";
 import {
+  classifyConsultationNeed,
   classifyTextIntent,
   isEmojiOnlyMessage,
   isGreetingText,
@@ -330,6 +330,23 @@ async function routeUnlockedText(
     return;
   }
 
+  const isConsultationChoice =
+    /^[①②③④⑤⑥1-6](?:[。.!！]?\s*)$/u.test(trimmed) ||
+    /^(?:我想瘦\s*\d*(?:公斤|kg)?|我想(?:減脂|减脂)|我想改善飲食習慣|我想增肌(?:、?提高蛋白質)?|我不知道自己?一天該?吃多少|我(?:每天|常常)都?外食(?:，?不知道怎麼選)?)[。.!！]?$/u.test(trimmed);
+  if (isConsultationChoice) {
+    const need = classifyConsultationNeed(trimmed);
+    const nextReply = {
+      weight_loss: "好，我們先把減脂目標訂清楚。你目前幾公斤、希望到幾公斤？也可以直接告訴我想減幾公斤。",
+      habits: "可以。你最想先改善哪一個飲食習慣？例如宵夜、含糖飲料、三餐不固定、份量太多，或其他困擾。",
+      muscle: "好，我先了解你的增肌狀況。你目前一週運動幾天？平常有沒有特別補充蛋白質？",
+      calorie_target: "可以，我幫你計算每天適合吃多少。請告訴我身高、體重、年齡、性別，以及平常一週運動幾天。",
+      eating_out: "沒問題。你最常吃哪一類外食？例如便當、自助餐、早餐店、超商、麵飯或速食。",
+      other: "可以，直接告訴我你現在最想改善什麼，或把遇到的飲食、減脂問題說給我聽。",
+    }[need];
+    await replyMemberText(replyToken, member.id, nextReply, `consultation_${need}`);
+    return;
+  }
+
   // Always resolve pending when correction-like — 「是A不是B」 has no meal keywords
   let hasPendingMeal = false;
   if (isPendingMealCorrection(trimmed)) {
@@ -456,19 +473,13 @@ export async function routeEvent(event: LineEvent): Promise<void> {
     if (event.type === "follow") {
       // Never re-ask completed / unlocked onboarding on re-follow
       if (!member.onboarding_step) {
-        await replyText(replyToken, welcomeMessage());
+        await replyText(replyToken, consultationStartMessage());
         return;
       }
-      const cont = continueOnboardingPrompt(member.onboarding_step);
       await replyMessage(replyToken, [
-        welcomeFlexMessage(),
         {
           type: "text",
-          text: [
-            "嗨，我是卡卡 💜 在開始陪伴你之前，想先花 1 分鐘了解你的目標，完成後我會提供專屬熱量、蛋白質與減脂方向。",
-            cont.reply,
-          ].join("\n\n"),
-          ...(cont.quickReply ? { quickReply: cont.quickReply } : {}),
+          text: consultationStartMessage(),
         },
       ]);
       return;

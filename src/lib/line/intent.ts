@@ -9,22 +9,28 @@ export type TextIntent =
   | "meal"
   | "chitchat";
 
-export type ConsultationNeed = "goal" | "photo" | "nutrition" | "record" | "remaining" | "other";
+export type ConsultationNeed =
+  | "weight_loss"
+  | "habits"
+  | "muscle"
+  | "calorie_target"
+  | "eating_out"
+  | "other";
 
 export function classifyConsultationNeed(text: string): ConsultationNeed {
   const t = text.trim().replace(/[。！!？?]/g, "");
   const numbered = t.match(/^[①②③④⑤⑥1-6]/u)?.[0];
   const numberMap: Record<string, ConsultationNeed> = {
-    "①": "goal", "1": "goal", "②": "photo", "2": "photo",
-    "③": "nutrition", "3": "nutrition", "④": "record", "4": "record",
-    "⑤": "remaining", "5": "remaining", "⑥": "other", "6": "other",
+    "①": "weight_loss", "1": "weight_loss", "②": "habits", "2": "habits",
+    "③": "muscle", "3": "muscle", "④": "calorie_target", "4": "calorie_target",
+    "⑤": "eating_out", "5": "eating_out", "⑥": "other", "6": "other",
   };
   if (numbered) return numberMap[numbered];
-  if (/分析.*(?:這|这)?一餐|營養分析|热量分析|熱量分析/u.test(t)) return "nutrition";
-  if (/拍照|照片/u.test(t)) return "photo";
-  if (/記錄|紀錄|存進|保存/u.test(t)) return "record";
-  if (/還能吃多少|剩餘熱量|蛋白質還差/u.test(t)) return "remaining";
-  if (/瘦|減脂|减脂|增肌|蛋白質|改善飲食|外食|一天.*吃多少|熱量目標|目標體重/u.test(t)) return "goal";
+  if (/外食|便當|自助餐|超商|便利商店/u.test(t)) return "eating_out";
+  if (/一天.*吃多少|每日.*熱量|熱量目標|不知道.*吃多少/u.test(t)) return "calorie_target";
+  if (/增肌|提高蛋白質|增加肌肉/u.test(t)) return "muscle";
+  if (/改善飲食|飲食習慣|戒宵夜|戒飲料/u.test(t)) return "habits";
+  if (/瘦|減脂|减脂|目標體重/u.test(t)) return "weight_loss";
   return "other";
 }
 

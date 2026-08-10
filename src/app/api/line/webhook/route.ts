@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getLineEnv } from "@/lib/env";
 import { getLineProfile, replyMessage } from "@/lib/line/client";
 import { verifyLineSignature } from "@/lib/line/signature";
-import { welcomeFlexMessage } from "@/lib/line/welcome-flex";
 import {
   trialAskFlexMessage,
 } from "@/lib/line/guide-flex";
@@ -79,19 +78,6 @@ export async function POST(req: Request) {
 
   for (const event of events) {
     try {
-      if (event.type === "follow" && event.replyToken) {
-        await replyMessage(event.replyToken, [
-          welcomeFlexMessage(),
-          { type: "text", text: consultationStartMessage() },
-        ]);
-        // Initialize member/profile in the background path without duplicating welcome copy.
-        await routeEvent({
-          ...(event as Parameters<typeof routeEvent>[0]),
-          replyToken: undefined,
-        });
-        continue;
-      }
-
       if (isHowToText(event) && event.replyToken) {
         await replyMessage(event.replyToken, [{ type: "text", text: consultationStartMessage() }]);
         continue;

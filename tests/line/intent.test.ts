@@ -23,16 +23,17 @@ import {
 
 describe("LINE text intent", () => {
   it.each([
-    ["①", "goal"],
-    ["2", "photo"],
-    ["③", "nutrition"],
-    ["4", "record"],
-    ["⑤", "remaining"],
+    ["①", "weight_loss"],
+    ["2", "habits"],
+    ["③", "muscle"],
+    ["4", "calorie_target"],
+    ["⑤", "eating_out"],
     ["6", "other"],
-    ["我想瘦 5 公斤", "goal"],
-    ["我每天都外食", "goal"],
-    ["不知道一天能吃多少", "goal"],
-    ["幫我分析這一餐", "nutrition"],
+    ["我想瘦 5 公斤", "weight_loss"],
+    ["我想改善飲食習慣", "habits"],
+    ["我想增肌提高蛋白質", "muscle"],
+    ["不知道一天能吃多少", "calorie_target"],
+    ["我每天都外食", "eating_out"],
   ])("classifies consultation choice %s as %s", (text, expected) => {
     expect(classifyConsultationNeed(text)).toBe(expected);
   });
