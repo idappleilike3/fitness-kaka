@@ -12,6 +12,7 @@ const interactiveStories = readFileSync(resolve(root, "InteractiveStoryGalleries
 const mealScenarios = readFileSync(resolve(root, "MealScenarioSwitcher.tsx"), "utf8");
 const chatbot = readFileSync(resolve(root, "KakaChatbot.tsx"), "utf8");
 const pointerEffects = readFileSync(resolve(root, "PointerEffects.tsx"), "utf8");
+const heroFlip = readFileSync(resolve(root, "HeroPhotoFlip.tsx"), "utf8");
 
 describe("homepage commercial content", () => {
   it("does not publish beta labels", () => {
@@ -66,7 +67,10 @@ describe("homepage commercial content", () => {
   });
 
   it("restores the original coach hero and expands the story sections", () => {
-    expect(page).toContain("/images/hero-kaka-original.webp");
+    expect(heroFlip).toContain("/images/hero-kaka-original.webp");
+    expect(heroFlip).toContain("/images/hero-kaka-premium-meal-v2.webp");
+    expect(heroFlip).toContain("heroFlipFront");
+    expect(heroFlip).toContain("heroFlipBack");
     expect(visualStories).toContain("陪你做下一個選擇");
     expect(visualStories).toContain("每一階段都讓你看懂自己");
     expect(visualStories).toContain("把健康進度");
