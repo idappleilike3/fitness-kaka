@@ -29,6 +29,16 @@ const ACTIVITY_MAP: Record<string, string> = {
 };
 
 const GOAL_MAP: Record<string, string> = {
+  "1": "cut",
+  "①": "cut",
+  "2": "cut",
+  "②": "cut",
+  "3": "bulk",
+  "③": "bulk",
+  "4": "cut",
+  "④": "cut",
+  "5": "cut",
+  "⑤": "cut",
   減脂: "cut",
   減脂瘦身: "cut",
   控制飲食: "cut",
@@ -192,7 +202,13 @@ function resolveActivity(raw: string): string | undefined {
 }
 
 function resolveGoal(raw: string): string | undefined {
-  return resolveChoice(GOAL_MAP, raw);
+  const direct = resolveChoice(GOAL_MAP, raw);
+  if (direct) return direct;
+  const text = raw.trim();
+  if (/增肌|提高蛋白質|增加肌肉/u.test(text)) return "bulk";
+  if (/瘦|減脂|减脂|改善飲食|外食|一天.*吃多少|目標體重/u.test(text)) return "cut";
+  if (/維持|健康/u.test(text)) return "maintain";
+  return undefined;
 }
 
 function resolveFreq(raw: string): number | undefined {
