@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { welcomeFlexMessage } from "@/lib/line/welcome-flex";
-import { howToUseFlexMessage, trialAskFlexMessage } from "@/lib/line/guide-flex";
+import { trialAskFlexMessage } from "@/lib/line/guide-flex";
+import { consultationStartMessage } from "@/lib/line/messages";
 
 describe("LINE guided onboarding cards", () => {
   it("asks before starting the free experience instead of opening LIFF directly", () => {
@@ -11,13 +12,13 @@ describe("LINE guided onboarding cards", () => {
     expect(freeButton.action.data).toBe("trial:ask");
   });
 
-  it("presents how-to instructions as six simple visual cards", () => {
-    const message = howToUseFlexMessage() as any;
-    expect(message.type).toBe("flex");
-    expect(message.contents.type).toBe("carousel");
-    expect(message.contents.contents).toHaveLength(6);
-    expect(message.contents.contents[0].body.contents[0].text).toContain("先認識卡卡");
-    expect(message.contents.contents[5].footer.contents[0].action.data).toBe("trial:ask");
+  it("explains how to start as a direct consultation instead of a tutorial Flex", () => {
+    const message = consultationStartMessage();
+    expect(message).toContain("我是卡卡健身減脂營養教練");
+    expect(message).toContain("① 設定減脂目標");
+    expect(message).toContain("⑥ 其他，直接告訴卡卡");
+    expect(message).toContain("你目前最想改善什麼");
+    expect(message).not.toContain("STEP 1");
   });
 
   it("free experience confirmation offers start and not-now choices", () => {
