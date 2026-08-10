@@ -5,6 +5,7 @@ import type { MemberRow } from "@/repositories/members";
 import { setOnboardingStep } from "@/repositories/members";
 import {
   completeProfileIfReady,
+  getProfile,
   patchProfile,
 } from "@/repositories/profiles";
 
@@ -26,6 +27,36 @@ const ACTIVITY_MAP: Record<string, string> = {
   light: "light",
   moderate: "moderate",
   high: "high",
+};
+
+const HEALTH_MAP: Record<string, string> = {
+  沒有: "none",
+  无: "none",
+  無: "none",
+  none: "none",
+  懷孕: "pregnant",
+  哺乳: "pregnant",
+  "懷孕／哺乳中": "pregnant",
+  pregnant: "pregnant",
+  飲食失調: "eating_disorder",
+  飲食失調困擾: "eating_disorder",
+  eating_disorder: "eating_disorder",
+  慢性病: "medical",
+  特殊疾病: "medical",
+  "慢性病／特殊疾病": "medical",
+  medical: "medical",
+};
+
+const EATING_MAP: Record<string, string> = {
+  自己煮: "mostly_home",
+  大多自己煮: "mostly_home",
+  mostly_home: "mostly_home",
+  各半: "mixed",
+  自煮外食各半: "mixed",
+  mixed: "mixed",
+  外食: "mostly_out",
+  大多外食: "mostly_out",
+  mostly_out: "mostly_out",
 };
 
 const GOAL_MAP: Record<string, string> = {
@@ -58,12 +89,16 @@ const STEPS = [
   "goal",
   "sex",
   "age",
+  "health",
   "height",
   "weight",
   "target_weight",
   "activity",
   "freq",
+  "eating",
 ] as const;
+
+export type OnboardingStep = (typeof STEPS)[number];
 
 export type OnboardingQuickReply = ReturnType<
   typeof onboardingQuickReplyForStep
@@ -84,43 +119,43 @@ type OnboardingProfile = {
   activity_level: string | null;
   workout_frequency: number | null;
   goal_type: string | null;
+  health_context?: string | null;
+  eating_pattern?: string | null;
 };
+
+export function firstMissingOnboardingStep(
+  profile: OnboardingProfile | null | undefined,
+): OnboardingStep | null {
+  if (!profile?.goal_type) return "goal";
+  if (!profile.sex) return "sex";
+  if (profile.age === null) return "age";
+  if (!profile.health_context) return "health";
+  if (profile.height_cm === null) return "height";
+  if (profile.weight_kg === null) return "weight";
+  if (profile.target_weight_kg === null) return "target_weight";
+  if (!profile.activity_level) return "activity";
+  if (profile.workout_frequency === null) return "freq";
+  if (!profile.eating_pattern) return "eating";
+  return null;
+}
 
 /** Recovers members whose profile completed but onboarding_step was left stale. */
 export function isCompletedOnboardingProfile(
   profile: OnboardingProfile | null | undefined,
 ): boolean {
-  return Boolean(
-    profile &&
-      profile.sex &&
-      profile.age !== null &&
-      profile.height_cm !== null &&
-      profile.weight_kg !== null &&
-      profile.target_weight_kg !== null &&
-      profile.activity_level &&
-      profile.workout_frequency !== null &&
-      profile.goal_type,
-  );
+  return firstMissingOnboardingStep(profile) === null;
 }
 
 /**
- * Do not gate meal logging for members who can already receive a TDEE estimate
- * or who hold an active paid plan. Target weight, workout frequency, and goal
- * improve coaching but must not trap an existing member in onboarding.
+ * Existing paid members retain the historical escape hatch. Free newcomers
+ * continue until the complete persisted profile and personalized targets exist.
  */
 export function shouldBypassOnboarding(
   profile: OnboardingProfile | null | undefined,
   currentPlanId: string,
 ): boolean {
   if (currentPlanId !== "free") return true;
-  return Boolean(
-    profile &&
-      profile.sex &&
-      profile.age !== null &&
-      profile.height_cm !== null &&
-      profile.weight_kg !== null &&
-      profile.activity_level,
-  );
+  return firstMissingOnboardingStep(profile) === null;
 }
 
 function nextStep(step: string | null): string | null {
@@ -154,6 +189,8 @@ export function promptFor(step: string): string {
       return "請點選性別（或輸入：男／女）";
     case "age":
       return "請輸入年齡（數字，例如 28）";
+    case "health":
+      return "為了給你安全的建議，請選擇目前是否有特殊狀況：沒有／懷孕或哺乳中／飲食失調困擾／慢性病或特殊疾病";
     case "height":
       return "請輸入身高公分（例如 170）";
     case "weight":
@@ -164,6 +201,8 @@ export function promptFor(step: string): string {
       return "請點選平日活動量（或輸入：久坐／輕度／中度／高強度）";
     case "freq":
       return "請點選每週健身次數（或輸入 0～7）";
+    case "eating":
+      return "你平常的飲食型態是哪一種？請選擇：大多自己煮／自煮外食各半／大多外食";
     case "goal":
       return "你現在最想改善什麼？請點選一個最接近你的目標";
     default:
@@ -211,6 +250,14 @@ function resolveGoal(raw: string): string | undefined {
   return undefined;
 }
 
+function resolveHealth(raw: string): string | undefined {
+  return resolveChoice(HEALTH_MAP, raw);
+}
+
+function resolveEating(raw: string): string | undefined {
+  return resolveChoice(EATING_MAP, raw);
+}
+
 function resolveFreq(raw: string): number | undefined {
   const direct = parseLooseNumber(raw);
   if (direct !== null && Number.isInteger(direct) && direct >= 0 && direct <= 7) {
@@ -239,6 +286,12 @@ export async function handleOnboarding(
 
   try {
     if (step === "goal") {
+      if (/^(6|⑥|其他|other)$/iu.test(raw)) {
+        return {
+          reply: "可以，直接告訴卡卡你最想改善的問題，例如體重、飲食、外食或增肌困擾",
+          stillOnboarding: true,
+        };
+      }
       const goal = resolveGoal(raw);
       if (!goal) return withPrompt("goal");
       await patchProfile(member.id, { goal_type: goal });
@@ -263,6 +316,10 @@ export async function handleOnboarding(
       const nxt = nextStep(step);
       await setOnboardingStep(member.id, nxt);
       return withPrompt(nxt!, note);
+    } else if (step === "health") {
+      const health = resolveHealth(raw);
+      if (!health) return withPrompt("health");
+      await patchProfile(member.id, { health_context: health });
     } else if (step === "height") {
       const height = parseLooseNumber(raw);
       if (height === null || !(height >= 100 && height <= 250)) {
@@ -300,7 +357,24 @@ export async function handleOnboarding(
         return withPrompt("freq");
       }
       await patchProfile(member.id, { workout_frequency: freq });
+    } else if (step === "eating") {
+      const eating = resolveEating(raw);
+      if (!eating) return withPrompt("eating");
+      await patchProfile(member.id, { eating_pattern: eating });
       const done = await completeProfileIfReady(member.id);
+      if (!done.done) {
+        const profile = await getProfile(member.id);
+        const missing = firstMissingOnboardingStep(profile);
+        if (missing) {
+          await setOnboardingStep(member.id, missing);
+          return withPrompt(missing);
+        }
+        return {
+          reply: "個人目標尚未完整保存，請再試一次",
+          stillOnboarding: true,
+          quickReply: onboardingQuickReplyForStep("eating"),
+        };
+      }
       await setOnboardingStep(member.id, null);
       return {
         reply: done.summary ?? "建檔完成",

@@ -300,6 +300,27 @@ export function onboardingGoalQuickReply() {
   };
 }
 
+export function onboardingHealthQuickReply() {
+  return {
+    items: [
+      postbackItem("沒有", "onboarding:health:none"),
+      postbackItem("懷孕／哺乳中", "onboarding:health:pregnant"),
+      postbackItem("飲食失調困擾", "onboarding:health:eating_disorder"),
+      postbackItem("慢性病／特殊疾病", "onboarding:health:medical"),
+    ],
+  };
+}
+
+export function onboardingEatingQuickReply() {
+  return {
+    items: [
+      postbackItem("大多自己煮", "onboarding:eating:mostly_home"),
+      postbackItem("自煮外食各半", "onboarding:eating:mixed"),
+      postbackItem("大多外食", "onboarding:eating:mostly_out"),
+    ],
+  };
+}
+
 export function onboardingQuickReplyForStep(step: string | null | undefined) {
   switch (step) {
     case "sex":
@@ -310,6 +331,10 @@ export function onboardingQuickReplyForStep(step: string | null | undefined) {
       return onboardingFreqQuickReply();
     case "goal":
       return onboardingGoalQuickReply();
+    case "health":
+      return onboardingHealthQuickReply();
+    case "eating":
+      return onboardingEatingQuickReply();
     default:
       return undefined;
   }

@@ -25,7 +25,7 @@ export function HeroPhotoFlip() {
             priority sizes="(max-width: 899px) 92vw, 46vw" />
         </span>
         <span className={`${styles.heroFlipFace} ${styles.heroFlipBack}`}>
-          <Image className={`${styles.challengeImage} ${styles.challengeImageSafe}`} src="/images/hero-kaka-cyberpunk-pink-v4.webp"
+          <Image className={`${styles.challengeImage} ${styles.challengeImageSafe}`} src="/images/hero-kaka-cyberpunk-pink-v5.webp"
             alt="粉紅賽博朋克卡卡健身減脂營養教練功能畫面" width={1086} height={1448}
             sizes="(max-width: 899px) 92vw, 46vw" />
         </span>

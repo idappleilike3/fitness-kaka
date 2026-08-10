@@ -46,7 +46,7 @@ import {
   type MemberRow,
 } from "@/repositories/members";
 import { getLatestPending } from "@/repositories/meals";
-import { getProfile } from "@/repositories/profiles";
+import { getProfile, patchProfile } from "@/repositories/profiles";
 import {
   getChallengeStatus,
   startChallenge,
@@ -62,6 +62,7 @@ import {
 } from "@/services/meal-flow";
 import {
   continueOnboardingPrompt,
+  firstMissingOnboardingStep,
   handleOnboarding,
   isCompletedOnboardingProfile,
   parseOnboardingPostback,
@@ -155,21 +156,25 @@ async function getCurrentPlanForMember(memberId: string) {
  * Prevents 鬼打牆 re-asking height/weight after unlock / 跳過 / paid.
  */
 async function unlockStaleOnboarding(member: MemberRow): Promise<MemberRow> {
-  if (!member.onboarding_step) return member;
-
   const profile = await getProfile(member.id);
+  if (!profile) return member;
+  if (!member.onboarding_step && profile.onboarding_skipped_at) return member;
   const completedProfile = isCompletedOnboardingProfile(profile);
-  const enoughForTdee = shouldBypassOnboarding(profile, "free");
-  const currentPlan =
-    completedProfile || enoughForTdee
-      ? null
-      : await getCurrentPlanForMember(member.id);
+  const currentPlan = completedProfile
+    ? null
+    : await getCurrentPlanForMember(member.id);
   const paidOrReady =
     completedProfile ||
-    enoughForTdee ||
     shouldBypassOnboarding(profile, currentPlan?.planId ?? "free");
 
-  if (!paidOrReady) return member;
+  if (!paidOrReady) {
+    const missing = firstMissingOnboardingStep(profile);
+    if (missing && missing !== member.onboarding_step) {
+      await setOnboardingStep(member.id, missing);
+      return { ...member, onboarding_step: missing };
+    }
+    return member;
+  }
 
   await setOnboardingStep(member.id, null);
   return { ...member, onboarding_step: null };
@@ -325,6 +330,7 @@ async function routeUnlockedText(
   }
 
   if (/^(?:開始建檔|重新建檔|建檔)$/u.test(trimmed)) {
+    await patchProfile(member.id, { onboarding_skipped_at: null });
     await setOnboardingStep(member.id, "goal");
     await replyOnboarding(replyToken, startOnboardingPrompt());
     return;
@@ -569,6 +575,9 @@ export async function routeEvent(event: LineEvent): Promise<void> {
             return;
           }
           if (text === "跳過") {
+            await patchProfile(member.id, {
+              onboarding_skipped_at: new Date().toISOString(),
+            });
             await setOnboardingStep(member.id, null);
             await replyText(
               replyToken,

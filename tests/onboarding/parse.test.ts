@@ -67,6 +67,8 @@ describe("stale onboarding recovery", () => {
         activity_level: "light",
         workout_frequency: 3,
         goal_type: "cut",
+        health_context: "none",
+        eating_pattern: "mixed",
       }),
     ).toBe(true);
   });
@@ -106,7 +108,7 @@ describe("onboarding escape hatches", () => {
     ).toBe(true);
   });
 
-  it("releases a member with the inputs required to calculate TDEE", () => {
+  it("keeps a free member in onboarding until the complete personal plan is saved", () => {
     expect(
       shouldBypassOnboarding(
         {
@@ -118,9 +120,11 @@ describe("onboarding escape hatches", () => {
           activity_level: "light",
           workout_frequency: null,
           goal_type: null,
+          health_context: "none",
+          eating_pattern: null,
         },
         "free",
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 });

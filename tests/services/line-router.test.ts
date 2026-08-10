@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getLineProfile: vi.fn(),
   getAdminDb: vi.fn(),
   getProfile: vi.fn(),
+  patchProfile: vi.fn(),
   handleOnboarding: vi.fn(),
   replyMessage: vi.fn(),
   replyText: vi.fn(),
@@ -67,7 +68,10 @@ vi.mock("@/repositories/members", () => ({
   setOnboardingStep: mocks.setOnboardingStep,
   upsertMemberByLineUserId: mocks.upsertMemberByLineUserId,
 }));
-vi.mock("@/repositories/profiles", () => ({ getProfile: mocks.getProfile }));
+vi.mock("@/repositories/profiles", () => ({
+  getProfile: mocks.getProfile,
+  patchProfile: mocks.patchProfile,
+}));
 vi.mock("@/repositories/meals", () => ({
   getLatestPending: mocks.getLatestPending,
 }));
@@ -106,6 +110,8 @@ describe("LINE onboarding recovery", () => {
     clearReplyMemory();
     mocks.ensureEventOnce.mockResolvedValue(true);
     mocks.getLineProfile.mockResolvedValue(null);
+    mocks.getProfile.mockResolvedValue(null);
+    mocks.patchProfile.mockResolvedValue(undefined);
     mocks.resolveCurrentPlan.mockReturnValue({ planId: "free", expiresAt: null });
     mocks.startChallenge.mockResolvedValue({
       day: 1,
@@ -145,6 +151,8 @@ describe("LINE onboarding recovery", () => {
       activity_level: "light",
       workout_frequency: 3,
       goal_type: "cut",
+      health_context: "none",
+      eating_pattern: "mixed",
     });
 
     await routeEvent({
@@ -268,6 +276,157 @@ describe("LINE onboarding recovery", () => {
       "reply",
       expect.not.stringMatching(/請點選性別|請輸入身高/),
     );
+  });
+
+  it("repairs a stale cursor from persisted answers and resumes at the first missing field", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: "goal",
+    });
+    mocks.getProfile.mockResolvedValue({
+      sex: "female",
+      age: 28,
+      height_cm: null,
+      weight_kg: null,
+      target_weight_kg: null,
+      activity_level: null,
+      workout_frequency: null,
+      goal_type: "cut",
+      health_context: "none",
+      eating_pattern: null,
+    });
+    mocks.handleOnboarding.mockResolvedValue({
+      reply: "請輸入目前體重公斤",
+      stillOnboarding: true,
+    });
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-resume-height",
+      source: { userId: "U123" },
+      message: { type: "text", text: "165" },
+    });
+
+    expect(mocks.setOnboardingStep).toHaveBeenCalledWith("member-1", "height");
+    expect(mocks.handleOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({ onboarding_step: "height" }),
+      "165",
+    );
+  });
+
+  it("re-enrolls an incomplete free profile whose cursor was lost", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: null,
+    });
+    mocks.getProfile.mockResolvedValue({
+      sex: "female",
+      age: 28,
+      height_cm: null,
+      weight_kg: null,
+      target_weight_kg: null,
+      activity_level: null,
+      workout_frequency: null,
+      goal_type: "cut",
+      health_context: "none",
+      eating_pattern: null,
+      profile_completed_at: null,
+    });
+    mocks.handleOnboarding.mockResolvedValue({
+      reply: "請輸入目前體重公斤",
+      stillOnboarding: true,
+    });
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-lost-cursor",
+      source: { userId: "U123" },
+      message: { type: "text", text: "165" },
+    });
+
+    expect(mocks.setOnboardingStep).toHaveBeenCalledWith("member-1", "height");
+    expect(mocks.handleOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({ onboarding_step: "height" }),
+      "165",
+    );
+  });
+
+  it("does not re-enroll a member who explicitly skipped onboarding", async () => {
+    mocks.upsertMemberByLineUserId.mockResolvedValue({
+      id: "member-1",
+      line_user_id: "U123",
+      display_name: "JENNIE",
+      status: "active",
+      onboarding_step: null,
+    });
+    mocks.getProfile.mockResolvedValue({
+      sex: null,
+      age: null,
+      height_cm: null,
+      weight_kg: null,
+      target_weight_kg: null,
+      activity_level: null,
+      workout_frequency: null,
+      goal_type: null,
+      health_context: null,
+      eating_pattern: null,
+      onboarding_skipped_at: "2026-08-11T02:00:00.000Z",
+    });
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-explicitly-skipped",
+      source: { userId: "U123" },
+      message: { type: "text", text: "早餐吃雞胸肉" },
+    });
+
+    expect(mocks.setOnboardingStep).not.toHaveBeenCalled();
+    expect(mocks.handleTextMeal).toHaveBeenCalledWith(
+      "reply",
+      "member-1",
+      "早餐吃雞胸肉",
+    );
+  });
+
+  it("durably records an explicit skip before clearing the cursor", async () => {
+    mocks.getProfile.mockResolvedValue({
+      sex: "female",
+      age: 28,
+      height_cm: null,
+      weight_kg: null,
+      target_weight_kg: null,
+      activity_level: null,
+      workout_frequency: null,
+      goal_type: "cut",
+      health_context: "none",
+      eating_pattern: null,
+      onboarding_skipped_at: null,
+    });
+
+    await routeEvent({
+      type: "message",
+      replyToken: "reply",
+      webhookEventId: "event-skip",
+      source: { userId: "U123" },
+      message: { type: "text", text: "跳過" },
+    });
+
+    expect(mocks.patchProfile).toHaveBeenCalledWith("member-1", {
+      onboarding_skipped_at: expect.any(String),
+    });
+    expect(mocks.patchProfile.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.setOnboardingStep.mock.invocationCallOrder[0],
+    );
+    expect(mocks.setOnboardingStep).toHaveBeenCalledWith("member-1", null);
   });
 
   it("starts a concrete weight-loss follow-up when an unlocked user chooses consultation option 1", async () => {

@@ -99,5 +99,11 @@ export async function setOnboardingStep(
   step: string | null,
 ): Promise<void> {
   const db = getAdminDb();
-  await db.from("members").update({ onboarding_step: step }).eq("id", memberId);
+  const { error } = await db
+    .from("members")
+    .update({ onboarding_step: step })
+    .eq("id", memberId);
+  if (error) {
+    throw new Error(`Supabase onboarding cursor update failed: ${error.message}`);
+  }
 }
