@@ -83,7 +83,7 @@ export function FeatureStory() {
           <div className={styles.proteinMeter}><i /><strong>62 / 100 g</strong><small>晚餐再補 38g</small></div>
         </article>
         <article className={styles.confirmScene}>
-          <div className={styles.featureMedia}><Image src="/images/story-coach-support.webp" alt="卡卡教練陪使用者確認餐點分析" fill sizes="(max-width: 860px) 92vw, 28vw" /></div>
+          <div className={styles.featureMedia}><Image src="/images/story-coach-confirm.webp" alt="卡卡教練指向平板上的餐點熱量與營養確認畫面" fill sizes="(max-width: 860px) 92vw, 28vw" /></div>
           <div><span>04 · 你來確認</span><h3>辨識正確，才存進紀錄</h3><p>份量或餐點不準都能修改，避免一次誤判影響整天。</p></div>
           <div className={styles.confirmCard}><span>雞胸肉 120g</span><span>糙米飯 半碗</span><span>花椰菜 1 份</span><b>修改份量　✓ 確認</b></div>
         </article>
@@ -228,7 +228,7 @@ export function MemberDashboardPreview() {
 export function CoachClosing() {
   return (
     <section className={styles.coachClosing} aria-labelledby="warmth-title">
-      <Image src="/images/story-coach-support.webp" alt="卡卡教練在餐桌旁用手機提供飲食建議" fill sizes="100vw" />
+      <Image src="/images/story-coach-progress.webp" alt="卡卡教練展示三十天減脂、剩餘熱量、蛋白質與運動進度" fill sizes="100vw" />
       <div className={styles.coachTabletUi} data-reveal aria-label="平板上的今日飲食建議示範">
         <small>今日飲食回顧</small>
         <div><strong>1,420</strong><span>/ 1,680 kcal</span></div>

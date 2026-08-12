@@ -97,7 +97,8 @@ describe("homepage commercial content", () => {
     expect(visualStories).toContain("/images/story-real-life.webp");
     expect(visualStories).toContain("/images/story-photo-analysis.webp");
     expect(visualStories).toContain("/images/story-roadmap.webp");
-    expect(visualStories).toContain("/images/story-coach-support.webp");
+    expect(visualStories).toContain("/images/story-coach-confirm.webp");
+    expect(visualStories).toContain("/images/story-coach-progress.webp");
     expect(visualStories).toContain("剩餘熱量");
     expect(visualStories).toContain("蛋白質");
     expect(visualStories).toContain("喝水");
@@ -147,7 +148,7 @@ describe("homepage commercial content", () => {
   });
 
   it("pairs all four key feature stories with existing real imagery", () => {
-    for (const image of ["story-photo-analysis.webp", "menu-day-2.webp", "menu-day-3.webp", "story-coach-support.webp"]) {
+    for (const image of ["story-photo-analysis.webp", "menu-day-2.webp", "menu-day-3.webp", "story-coach-confirm.webp", "story-coach-progress.webp"]) {
       expect(visualStories).toContain(`/images/${image}`);
     }
   });
