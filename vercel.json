@@ -6,5 +6,8 @@
     "src/app/api/newebpay/notify/route.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    { "path": "/api/cron/line-followups", "schedule": "*/30 * * * *" }
+  ]
 }

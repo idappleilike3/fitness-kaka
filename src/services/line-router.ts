@@ -70,6 +70,9 @@ import {
   startOnboardingPrompt,
   type OnboardingResult,
 } from "@/services/onboarding";
+import { resumeMealFollowups } from "@/services/line-followups";
+import { configureMealFollowups } from "@/services/line-followups";
+import { parseMealSlotCommand } from "@/lib/followups/rules";
 
 type LineEvent = {
   type: string;
@@ -324,6 +327,16 @@ async function routeUnlockedText(
 ): Promise<void> {
   const trimmed = text.trim();
 
+  if (trimmed === "提醒設定") {
+    await replyMemberText(replyToken, member.id, "付費會員可輸入：\n「提醒早餐」\n「提醒早餐、午餐」\n「提醒早餐、午餐、晚餐」\n或「關閉餐次提醒」\n\nPlus 最多 2 餐，Pro 最多 3 餐。", "followup_settings");
+    return;
+  }
+  const mealSlots = parseMealSlotCommand(trimmed);
+  if (mealSlots !== null) {
+    await replyMemberText(replyToken, member.id, await configureMealFollowups(member.id, mealSlots), "followup_settings");
+    return;
+  }
+
   if (isEmojiOnlyMessage(trimmed)) {
     await replySoftAck(replyToken, member.id);
     return;
@@ -475,6 +488,10 @@ export async function routeEvent(event: LineEvent): Promise<void> {
     );
     member = await unlockStaleOnboarding(member);
     if (!replyToken) return;
+
+    if (event.type === "message") {
+      await resumeMealFollowups(member.id).catch(() => undefined);
+    }
 
     if (event.type === "follow") {
       // Never re-ask completed / unlocked onboarding on re-follow
