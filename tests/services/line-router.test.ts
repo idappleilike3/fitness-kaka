@@ -139,6 +139,10 @@ describe("LINE onboarding recovery", () => {
       ok: true,
       reply: "教練回覆",
     });
+    mocks.handleOnboarding.mockResolvedValue({
+      reply: "請繼續完成建檔",
+      stillOnboarding: true,
+    });
   });
 
   it("does not ask height or weight again when a completed profile has a stale onboarding step", async () => {
@@ -202,7 +206,7 @@ describe("LINE onboarding recovery", () => {
     );
   });
 
-  it("clears stale onboarding for an active paid member before routing their message", async () => {
+  it("continues incomplete onboarding for an active paid member instead of treating partial targets as complete", async () => {
     mocks.getProfile.mockResolvedValue({
       sex: null,
       age: null,
@@ -242,13 +246,12 @@ describe("LINE onboarding recovery", () => {
       message: { type: "text", text: "早餐吃雞胸肉" },
     });
 
-    expect(mocks.setOnboardingStep).toHaveBeenCalledWith("member-1", null);
-    expect(mocks.handleOnboarding).not.toHaveBeenCalled();
-    expect(mocks.handleTextMeal).toHaveBeenCalledWith(
-      "reply",
-      "member-1",
+    expect(mocks.setOnboardingStep).toHaveBeenCalledWith("member-1", "goal");
+    expect(mocks.handleOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({ onboarding_step: "goal" }),
       "早餐吃雞胸肉",
     );
+    expect(mocks.handleTextMeal).not.toHaveBeenCalled();
   });
 
   it("does not restart onboarding on follow when already unlocked", async () => {

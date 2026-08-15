@@ -19,6 +19,12 @@ describe("onboarding numeric parsing", () => {
   it("parses freq button labels", () => {
     expect(parseLooseNumber("3次")).toBe(3);
   });
+
+  it("accepts one natural-language target number but rejects ambiguous multiple numbers", () => {
+    expect(parseLooseNumber("減到42公斤")).toBe(42);
+    expect(parseLooseNumber("目標 50 kg")).toBe(50);
+    expect(parseLooseNumber("158 45")).toBeNull();
+  });
 });
 
 describe("onboarding postback", () => {
@@ -90,7 +96,7 @@ describe("stale onboarding recovery", () => {
 });
 
 describe("onboarding escape hatches", () => {
-  it("releases an active paid member even when optional onboarding answers are missing", () => {
+  it("does not release an active paid member while required onboarding answers are missing", () => {
     expect(
       shouldBypassOnboarding(
         {
@@ -105,7 +111,7 @@ describe("onboarding escape hatches", () => {
         },
         "plan_799",
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("keeps a free member in onboarding until the complete personal plan is saved", () => {

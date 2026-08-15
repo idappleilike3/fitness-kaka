@@ -147,14 +147,15 @@ export function isCompletedOnboardingProfile(
 }
 
 /**
- * Existing paid members retain the historical escape hatch. Free newcomers
- * continue until the complete persisted profile and personalized targets exist.
+ * A paid subscription unlocks features, but it must never masquerade as a
+ * completed nutrition profile. Only complete persisted answers can release
+ * the questionnaire; an explicit user skip is handled separately by the
+ * router and stored as `onboarding_skipped_at`.
  */
 export function shouldBypassOnboarding(
   profile: OnboardingProfile | null | undefined,
-  currentPlanId: string,
+  _currentPlanId: string,
 ): boolean {
-  if (currentPlanId !== "free") return true;
   return firstMissingOnboardingStep(profile) === null;
 }
 
@@ -177,9 +178,14 @@ export function normalizeNumericInput(raw: string): string {
 }
 
 export function parseLooseNumber(raw: string): number | null {
-  const s = normalizeNumericInput(raw);
-  if (!s) return null;
-  const n = Number(s);
+  const ascii = raw
+    .trim()
+    .replace(/[\uFF10-\uFF19]/g, (ch) =>
+      String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30),
+    );
+  const matches = ascii.match(/\d+(?:\.\d+)?/g);
+  if (!matches || matches.length !== 1) return null;
+  const n = Number(matches[0]);
   return Number.isFinite(n) ? n : null;
 }
 
